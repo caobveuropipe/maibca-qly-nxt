@@ -1,0 +1,6 @@
+{
+  "name": "Quản lý Nhập Xuất Tồn Kho",
+  "description": "Ứng dụng quản lý nhập xuất tồn kho theo thời gian thực, đồng bộ dữ liệu Google Sheets, hỗ trợ nhập xuất nhiều kho, đọc file Excel và xuất báo cáo PDF/Excel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
