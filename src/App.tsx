@@ -118,17 +118,22 @@ export default function App() {
         try {
           data = JSON.parse(text);
         } catch {
+          setSyncMessage('⚠️ [Cảnh báo đồng bộ] URL WebApp chưa đúng hoặc chưa kết nối đến Google Sheet của bạn. Vui lòng mở trang Google Sheet -> Tiện ích mở rộng -> Apps Script -> Triển khai (Deploy) Web App ở chế độ "Anyone" và dán URL mới vào đây.');
+          updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
           return;
         }
 
         if (data.success) {
           const timeStr = new Date().toLocaleTimeString('vi-VN');
-          setSyncMessage(`⚡ [Realtime] Đã tự động đẩy ngầm dữ liệu lên Google Sheet lúc ${timeStr}!`);
+          setSyncMessage(`⚡ [Realtime] Đã tự động đẩy thành công ${updatedProducts.length} SP và ${updatedTransactions.length} phiếu lên Google Sheet lúc ${timeStr}!`);
           updateGoogleConfig({
             ...googleConfig,
             lastSyncedAt: timeStr,
             syncStatus: 'success',
           });
+        } else {
+          setSyncMessage(`⚠️ Lỗi từ Google Sheet: ${data.error}`);
+          updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
         }
       } catch (e) {
         console.warn('Background auto-push skipped:', e);
