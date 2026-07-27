@@ -221,6 +221,38 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
         </div>
 
         <div className="space-y-4">
+          {/* Realtime Auto Sync Toggle */}
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                <RefreshCw className={`w-5 h-5 ${config.autoSync ? 'animate-spin' : ''}`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">Tự Động Đồng Bộ Realtime (Auto-Sync)</span>
+                  {config.autoSync && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white animate-pulse">
+                      Đang Bật Realtime
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Tự động đẩy ngầm lên Sheet khi Tạo/Sửa/Xóa dữ liệu (Debounce 1.5s) & Tự động tải ngầm về mỗi 30s.
+                </p>
+              </div>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={!!config.autoSync}
+                onChange={(e) => onUpdateConfig({ ...config, autoSync: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
               Google Apps Script WebApp URL (Dùng để ghi/đọc dữ liệu trực tiếp):

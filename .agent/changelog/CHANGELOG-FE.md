@@ -8,6 +8,12 @@
 
 ## 2026-07-28
 
+### feat: Tự Động Đồng Bộ Realtime (Auto-Sync Engine)
+- Thêm cơ chế **Auto-Push ngầm (Debounce 1.5s)**: Tự động đẩy dữ liệu lên Google Sheet ngay sau khi Tạo/Sửa/Xóa Sản phẩm, Kho, Phiếu nhập xuất mà không cần bấm nút thủ công.
+- Thêm cơ chế **Auto-Pull Polling 30s ngầm**: Tự động tải dữ liệu mới từ Sheet về định kỳ mỗi 30 giây.
+- Thêm Toggle Switch `Tự Động Đồng Bộ Realtime` và Badge trạng thái sinh động trong `GoogleSheetsSyncView.tsx`.
+- Files: `src/App.tsx`, `src/components/GoogleSheetsSyncView.tsx`
+
 ### feat: Chuyển đổi gọi trực tiếp Google Apps Script từ Frontend (Thuần GAS)
 - Refactor `handleSyncUp` và `handleSyncDown` sang Simple Request `fetch()` tới GAS WebApp với `Content-Type: text/plain;charset=utf-8` và `redirect: 'follow'` để tránh kích hoạt CORS preflight `OPTIONS`.
 - Cập nhật điều kiện kích hoạt các nút bấm đồng bộ trong `GoogleSheetsSyncView.tsx` khi người dùng nhập GAS WebApp URL.

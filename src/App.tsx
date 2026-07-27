@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Product,
   Warehouse,
@@ -41,7 +41,7 @@ export default function App() {
     spreadsheetId: '',
     spreadsheetUrl: '',
     gasWebappUrl: 'https://script.google.com/macros/s/AKfycbxNuC3kUO_pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw/exec',
-    autoSync: false,
+    autoSync: true,
     syncStatus: 'idle',
   });
 
@@ -50,6 +50,10 @@ export default function App() {
   const [selectedProductIdForCard, setSelectedProductIdForCard] = useState<string>('');
   const [selectedVoucherCode, setSelectedVoucherCode] = useState<string | null>(null);
   const [editingVoucherCode, setEditingVoucherCode] = useState<string | null>(null);
+
+  // Auto Sync Engine References
+  const autoSyncDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const isAutoSyncingRef = useRef(false);
 
   // Modals
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
@@ -74,20 +78,145 @@ export default function App() {
     setGoogleConfig(g);
   }, []);
 
-  // Save changes to localStorage
+  // Trigger Debounced Auto-Push (1.5s) when data is mutated
+  const triggerAutoPush = (
+    updatedProducts = products,
+    updatedWarehouses = warehouses,
+    updatedTransactions = transactions
+  ) => {
+    if (!googleConfig.autoSync || !googleConfig.gasWebappUrl || isAutoSyncingRef.current) {
+      return;
+    }
+
+    if (autoSyncDebounceRef.current) {
+      clearTimeout(autoSyncDebounceRef.current);
+    }
+
+    autoSyncDebounceRef.current = setTimeout(async () => {
+      if (isAutoSyncingRef.current) return;
+      isAutoSyncingRef.current = true;
+      try {
+        setSyncMessage('⚡ [Realtime] Đang tự động đẩy ngầm dữ liệu lên Google Sheets...');
+        const payload = {
+          action: 'SYNC_UP',
+          pin: googleConfig.gasPin || '123456',
+          userEmail: googleConfig.userEmail || 'admin@system.local',
+          warehouses: updatedWarehouses,
+          products: updatedProducts,
+          transactions: updatedTransactions,
+        };
+
+        const res = await fetch(googleConfig.gasWebappUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
+        });
+
+        const text = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          return;
+        }
+
+        if (data.success) {
+          const timeStr = new Date().toLocaleTimeString('vi-VN');
+          setSyncMessage(`⚡ [Realtime] Đã tự động đẩy ngầm dữ liệu lên Google Sheet lúc ${timeStr}!`);
+          updateGoogleConfig({
+            ...googleConfig,
+            lastSyncedAt: timeStr,
+            syncStatus: 'success',
+          });
+        }
+      } catch (e) {
+        console.warn('Background auto-push skipped:', e);
+      } finally {
+        isAutoSyncingRef.current = false;
+      }
+    }, 1500);
+  };
+
+  // Auto-Pull Polling (every 30 seconds when autoSync is enabled)
+  useEffect(() => {
+    if (!googleConfig.autoSync || !googleConfig.gasWebappUrl) {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      if (isSyncing || isAutoSyncingRef.current) return;
+      isAutoSyncingRef.current = true;
+
+      try {
+        const payload = {
+          action: 'SYNC_DOWN',
+          pin: googleConfig.gasPin || '123456',
+        };
+
+        const res = await fetch(googleConfig.gasWebappUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
+        });
+
+        const text = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          return;
+        }
+
+        if (data.success && data.data) {
+          if (data.data.products && data.data.products.length >= 0) {
+            setProducts(data.data.products);
+            saveProductsToLocal(data.data.products);
+          }
+          if (data.data.warehouses && data.data.warehouses.length >= 0) {
+            setWarehouses(data.data.warehouses);
+            saveWarehousesToLocal(data.data.warehouses);
+          }
+          if (data.data.transactions && data.data.transactions.length >= 0) {
+            setTransactions(data.data.transactions);
+            saveTransactionsToLocal(data.data.transactions);
+          }
+          const timeStr = new Date().toLocaleTimeString('vi-VN');
+          setSyncMessage(`⚡ [Realtime] Đã tự động làm mới dữ liệu từ Google Sheet lúc ${timeStr}!`);
+          updateGoogleConfig({
+            ...googleConfig,
+            lastSyncedAt: timeStr,
+            syncStatus: 'success',
+          });
+        }
+      } catch (e) {
+        console.warn('Background auto-pull skipped:', e);
+      } finally {
+        isAutoSyncingRef.current = false;
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [googleConfig.autoSync, googleConfig.gasWebappUrl, isSyncing, googleConfig]);
+
+  // Save changes to localStorage & trigger auto push
   const updateProducts = (newProducts: Product[]) => {
     setProducts(newProducts);
     saveProductsToLocal(newProducts);
+    triggerAutoPush(newProducts, warehouses, transactions);
   };
 
   const updateWarehouses = (newWarehouses: Warehouse[]) => {
     setWarehouses(newWarehouses);
     saveWarehousesToLocal(newWarehouses);
+    triggerAutoPush(products, newWarehouses, transactions);
   };
 
   const updateTransactions = (newTransactions: Transaction[]) => {
     setTransactions(newTransactions);
     saveTransactionsToLocal(newTransactions);
+    triggerAutoPush(products, warehouses, newTransactions);
   };
 
   const updateGoogleConfig = (newConfig: GoogleSyncConfig) => {
