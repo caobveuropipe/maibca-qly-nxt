@@ -360,7 +360,14 @@ export default function App() {
           }),
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(`Server Vercel phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+        }
+
         if (data.success) {
           setSyncMessage(data.message || `Đã đồng bộ ${products.length} SP và ${transactions.length} phiếu!`);
           updateGoogleConfig({
@@ -407,7 +414,14 @@ export default function App() {
           }),
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(`Server Vercel phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+        }
+
         if (data.success && data.data) {
           if (data.data.products && data.data.products.length >= 0) {
             updateProducts(data.data.products);

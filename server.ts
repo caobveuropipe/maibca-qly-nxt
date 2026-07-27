@@ -180,6 +180,7 @@ app.post('/api/gas-proxy', async (req, res) => {
   try {
     const payload = req.body?.payload || req.body;
 
+    // Use global fetch with redirect follow
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -192,13 +193,13 @@ app.post('/api/gas-proxy', async (req, res) => {
     try {
       data = JSON.parse(text);
     } catch {
-      return res.status(502).json({ success: false, error: `GAS trả về không phải JSON: ${text.substring(0, 200)}` });
+      return res.json({ success: false, error: `GAS WebApp chưa trả về JSON hợp lệ. Vui lòng kiểm tra đã Deploy WebApp ở chế độ "Anyone" chưa. Nguồn trả về: ${text.substring(0, 150)}` });
     }
 
-    res.json(data);
+    return res.json(data);
   } catch (err: any) {
     console.error('[GAS Proxy Error]', err.message);
-    res.status(500).json({ success: false, error: `Lỗi kết nối tới GAS: ${err.message}` });
+    return res.json({ success: false, error: `Lỗi kết nối tới GAS Proxy: ${err.message}` });
   }
 });
 
