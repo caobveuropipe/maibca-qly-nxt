@@ -36,7 +36,15 @@ export const loadInitialState = () => {
     if (savedTx) transactions = JSON.parse(savedTx);
 
     const savedConfig = localStorage.getItem(LOCAL_STORAGE_KEY_GOOGLE_CONFIG);
-    if (savedConfig) googleConfig = JSON.parse(savedConfig);
+    if (savedConfig) {
+      const parsed = JSON.parse(savedConfig);
+      // Merge with default to ensure gasWebappUrl is always populated from code default
+      googleConfig = {
+        ...googleConfig,
+        ...parsed,
+        gasWebappUrl: parsed.gasWebappUrl || googleConfig.gasWebappUrl,
+      };
+    }
   } catch (e) {
     console.error('Failed to load local storage state:', e);
   }
