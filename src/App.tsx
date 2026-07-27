@@ -383,7 +383,11 @@ export default function App() {
         await handleSyncUpWithId(googleConfig.spreadsheetId);
       }
     } catch (err: any) {
-      setSyncMessage(`Lỗi kết nối: ${err.message}`);
+      let msg = err.message || '';
+      if (msg.includes('Failed to fetch')) {
+        msg = 'Không thể kết nối đến Google Apps Script WebApp (ERR 404 / Failed to fetch). Vui lòng kiểm tra lại đường dẫn WebApp URL đã đúng chưa, hoặc tiến hành Triển khai (Deploy) lại WebApp trên Google Sheet ở chế độ "Anyone".';
+      }
+      setSyncMessage(`Lỗi kết nối: ${msg}`);
       updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
     } finally {
       setIsSyncing(false);
@@ -485,7 +489,11 @@ export default function App() {
         }
       }
     } catch (err: any) {
-      setSyncMessage(`Lỗi kết nối: ${err.message}`);
+      let msg = err.message || '';
+      if (msg.includes('Failed to fetch')) {
+        msg = 'Không thể kết nối đến Google Apps Script WebApp (ERR 404 / Failed to fetch). Vui lòng kiểm tra lại đường dẫn WebApp URL đã đúng chưa, hoặc tiến hành Triển khai (Deploy) lại WebApp trên Google Sheet ở chế độ "Anyone".';
+      }
+      setSyncMessage(`Lỗi kết nối: ${msg}`);
       updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
     } finally {
       setIsSyncing(false);
