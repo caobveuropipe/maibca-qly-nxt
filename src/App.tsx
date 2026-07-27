@@ -243,7 +243,13 @@ export default function App() {
         body: JSON.stringify({ title: 'Quản Lý Nhập Xuất Tồn Kho' }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Server phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+      }
 
       if (data.success) {
         const newConfig: GoogleSyncConfig = {
@@ -289,7 +295,13 @@ export default function App() {
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Server phản hồi lỗi HTML (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+      }
       if (data.success) {
         setSyncMessage(`Đã đồng bộ ${products.length} SP và ${transactions.length} phiếu lên Google Sheet!`);
         updateGoogleConfig({
@@ -339,7 +351,13 @@ export default function App() {
         body: JSON.stringify({ spreadsheetId: googleConfig.spreadsheetId }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error(`Server phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+      }
       if (data.success && data.data) {
         if (data.data.products && data.data.products.length > 0) {
           updateProducts(data.data.products);

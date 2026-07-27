@@ -272,7 +272,7 @@ app.post('/api/sheets/create', async (req, res) => {
     });
   } catch (error: any) {
     console.error('Error creating Google Sheet:', error);
-    res.status(550).json({
+    res.status(500).json({
       success: false,
       error: error.message || 'Không thể tạo Google Sheet. Vui lòng kiểm tra quyền xác thực.',
     });
