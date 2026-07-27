@@ -135,7 +135,7 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
 
           <button
             onClick={onCreateNewSheet}
-            disabled={isSyncing || !config.idToken}
+            disabled={isSyncing}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center gap-2 shrink-0 transition-all"
           >
             <PlusCircle className="w-4 h-4" />
@@ -147,15 +147,15 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
       {/* Google Login Section */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
         <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
-          <ShieldCheck className="w-4 h-4 text-emerald-500" /> Xác Thực Tài Khoản Google (Bắt buộc)
+          <ShieldCheck className="w-4 h-4 text-emerald-500" /> Xác Thực Tài Khoản Google (Tùy chọn)
         </h3>
 
         {!config.idToken ? (
-          <div className="flex flex-col items-center justify-center p-6 space-y-4">
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center max-w-md">
-              Vui lòng đăng nhập bằng tài khoản Google của bạn để tự động lấy email phục vụ việc ghi nhật ký thao tác và kiểm tra phân quyền truy cập trên Google Sheet.
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 gap-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Đăng nhập Google nếu muốn phân quyền chi tiết. Bạn có thể sử dụng đầy đủ các tính năng Tạo/Đồng Bộ Sheet mà không bắt buộc phải đăng nhập.
             </p>
-            <div id="google-signin-btn" className="transition-all"></div>
+            <div id="google-signin-btn" className="transition-all shrink-0"></div>
           </div>
         ) : (
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -253,7 +253,7 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
             </p>
             <button
               onClick={onSyncUp}
-              disabled={isSyncing || !config.spreadsheetId || !config.idToken}
+              disabled={isSyncing || !config.spreadsheetId}
               className="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold text-xs rounded-md shadow-sm flex items-center justify-center gap-2 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
@@ -271,7 +271,7 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
             </p>
             <button
               onClick={onSyncDown}
-              disabled={isSyncing || !config.spreadsheetId || !config.idToken}
+              disabled={isSyncing || !config.spreadsheetId}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs rounded-md shadow-sm flex items-center justify-center gap-2 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />

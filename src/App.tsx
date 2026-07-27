@@ -369,6 +369,16 @@ export default function App() {
     }
   };
 
+  // Clear all data
+  const handleClearAllData = () => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa TOÀN BỘ dữ liệu mẫu/hiện tại trên máy không? (Sản phẩm, Kho hàng, Phiếu nhập xuất sẽ về 0)')) {
+      updateProducts([]);
+      updateWarehouses([]);
+      updateTransactions([]);
+      alert('Đã xóa sạch dữ liệu! Bạn có thể bắt đầu nhập dữ liệu thực mới.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex flex-col selection:bg-emerald-500 selection:text-white">
       {/* Navigation Header */}
@@ -381,6 +391,7 @@ export default function App() {
         googleConfig={googleConfig}
         onQuickSync={handleSyncUp}
         isSyncing={isSyncing}
+        onClearData={handleClearAllData}
       />
 
       {/* Main Content Area */}

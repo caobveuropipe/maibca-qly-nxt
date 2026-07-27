@@ -12,6 +12,7 @@ import {
   ArrowUpRight,
   Upload,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
 import { GoogleSyncConfig } from '../types';
 
@@ -26,6 +27,7 @@ interface HeaderProps {
   googleConfig: GoogleSyncConfig;
   onQuickSync: () => void;
   isSyncing: boolean;
+  onClearData?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   googleConfig,
   onQuickSync,
   isSyncing,
+  onClearData,
 }) => {
   return (
     <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
@@ -110,6 +113,17 @@ export const Header: React.FC<HeaderProps> = ({
               <ArrowUpRight className="w-4 h-4" />
               <span>+ Phiếu Xuất</span>
             </button>
+
+            {onClearData && (
+              <button
+                onClick={onClearData}
+                title="Xóa sạch dữ liệu trong kho & máy"
+                className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-800/60 text-xs font-medium rounded-md flex items-center gap-1 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Xóa Dữ Liệu</span>
+              </button>
+            )}
           </div>
         </div>
 
