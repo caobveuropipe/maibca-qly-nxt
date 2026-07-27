@@ -86,6 +86,8 @@ export interface StockCardItem {
 export interface GoogleSyncConfig {
   spreadsheetId: string;
   spreadsheetUrl: string;
+  gasWebappUrl?: string;
+  gasPin?: string;
   autoSync: boolean;
   lastSyncedAt?: string;
   syncStatus: 'idle' | 'syncing' | 'success' | 'error';

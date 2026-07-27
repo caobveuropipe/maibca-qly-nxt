@@ -220,24 +220,41 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
           )}
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-            Dán URL Google Sheet hoặc Spreadsheet ID:
-          </label>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              placeholder="VD: https://docs.google.com/spreadsheets/d/1ABC123xyz/edit hoặc 1ABC123xyz"
-              value={inputUrl}
-              onChange={(e) => setInputUrl(e.target.value)}
-              className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <button
-              onClick={handleSaveSpreadsheetId}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-md shadow-sm transition-all shrink-0"
-            >
-              Lưu Liên Kết
-            </button>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Google Apps Script WebApp URL (Dùng để ghi/đọc dữ liệu trực tiếp):
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                placeholder="VD: https://script.google.com/macros/s/AKfycbx.../exec"
+                value={config.gasWebappUrl || ''}
+                onChange={(e) => onUpdateConfig({ ...config, gasWebappUrl: e.target.value.trim() })}
+                className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Dán URL Google Sheet hoặc Spreadsheet ID (Tùy chọn xem trực tiếp):
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                placeholder="VD: https://docs.google.com/spreadsheets/d/1ABC123xyz/edit hoặc 1ABC123xyz"
+                value={inputUrl}
+                onChange={(e) => setInputUrl(e.target.value)}
+                className="flex-1 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+              <button
+                onClick={handleSaveSpreadsheetId}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-md shadow-sm transition-all shrink-0"
+              >
+                Lưu Liên Kết
+              </button>
+            </div>
           </div>
         </div>
 

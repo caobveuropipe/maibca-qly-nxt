@@ -321,63 +321,136 @@ export default function App() {
   };
 
   const handleSyncUp = async () => {
-    if (!googleConfig.spreadsheetId) {
+    if (!googleConfig.gasWebappUrl && !googleConfig.spreadsheetId) {
       setActiveTab('sheets');
+      alert('Vui lòng nhập Google Apps Script WebApp URL hoặc Spreadsheet ID!');
       return;
     }
     setIsSyncing(true);
     setSyncMessage('Đang đẩy dữ liệu lên Google Sheets...');
-    await handleSyncUpWithId(googleConfig.spreadsheetId);
-    setIsSyncing(false);
+
+    try {
+      if (googleConfig.gasWebappUrl) {
+        // Direct GAS WebApp Post
+        const res = await fetch(googleConfig.gasWebappUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'SYNC_UP',
+            pin: googleConfig.gasPin || '123456',
+            userEmail: googleConfig.userEmail || 'admin@system.local',
+            warehouses,
+            products,
+            transactions,
+          }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          setSyncMessage(data.message || `Đã đồng bộ ${products.length} SP và ${transactions.length} phiếu!`);
+          updateGoogleConfig({
+            ...googleConfig,
+            lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
+            syncStatus: 'success',
+          });
+        } else {
+          setSyncMessage(`Lỗi đồng bộ GAS: ${data.error}`);
+          updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+        }
+      } else {
+        await handleSyncUpWithId(googleConfig.spreadsheetId);
+      }
+    } catch (err: any) {
+      setSyncMessage(`Lỗi kết nối: ${err.message}`);
+      updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleSyncDown = async () => {
-    if (!googleConfig.spreadsheetId) {
+    if (!googleConfig.gasWebappUrl && !googleConfig.spreadsheetId) {
       setActiveTab('sheets');
+      alert('Vui lòng nhập Google Apps Script WebApp URL hoặc Spreadsheet ID!');
       return;
     }
     setIsSyncing(true);
     setSyncMessage('Đang tải dữ liệu từ Google Sheets về ứng dụng...');
 
     try {
-      const headers: HeadersInit = { 'Content-Type': 'application/json' };
-      if (googleConfig.idToken) {
-        headers['Authorization'] = `Bearer ${googleConfig.idToken}`;
-      }
-
-      const res = await fetch('/api/sheets/sync-down', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ spreadsheetId: googleConfig.spreadsheetId }),
-      });
-
-      const text = await res.text();
-      let data: any;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Server phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
-      }
-      if (data.success && data.data) {
-        if (data.data.products && data.data.products.length > 0) {
-          updateProducts(data.data.products);
-        }
-        if (data.data.warehouses && data.data.warehouses.length > 0) {
-          updateWarehouses(data.data.warehouses);
-        }
-        if (data.data.transactions && data.data.transactions.length > 0) {
-          updateTransactions(data.data.transactions);
-        }
-
-        setSyncMessage('Cập nhật dữ liệu từ Google Sheet thành công!');
-        updateGoogleConfig({
-          ...googleConfig,
-          lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
-          syncStatus: 'success',
+      if (googleConfig.gasWebappUrl) {
+        // Direct GAS WebApp Pull
+        const res = await fetch(googleConfig.gasWebappUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'SYNC_DOWN',
+            pin: googleConfig.gasPin || '123456',
+          }),
         });
+
+        const data = await res.json();
+        if (data.success && data.data) {
+          if (data.data.products && data.data.products.length >= 0) {
+            updateProducts(data.data.products);
+          }
+          if (data.data.warehouses && data.data.warehouses.length >= 0) {
+            updateWarehouses(data.data.warehouses);
+          }
+          if (data.data.transactions && data.data.transactions.length >= 0) {
+            updateTransactions(data.data.transactions);
+          }
+
+          setSyncMessage('Cập nhật dữ liệu từ Google Sheet (GAS WebApp) thành công!');
+          updateGoogleConfig({
+            ...googleConfig,
+            lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
+            syncStatus: 'success',
+          });
+        } else {
+          setSyncMessage(`Lỗi tải dữ liệu GAS: ${data.error}`);
+          updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+        }
       } else {
-        setSyncMessage(`Lỗi tải dữ liệu: ${data.error}`);
-        updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+        if (googleConfig.idToken) {
+          headers['Authorization'] = `Bearer ${googleConfig.idToken}`;
+        }
+
+        const res = await fetch('/api/sheets/sync-down', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ spreadsheetId: googleConfig.spreadsheetId }),
+        });
+
+        const text = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Server phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+        }
+        if (data.success && data.data) {
+          if (data.data.products && data.data.products.length > 0) {
+            updateProducts(data.data.products);
+          }
+          if (data.data.warehouses && data.data.warehouses.length > 0) {
+            updateWarehouses(data.data.warehouses);
+          }
+          if (data.data.transactions && data.data.transactions.length > 0) {
+            updateTransactions(data.data.transactions);
+          }
+
+          setSyncMessage('Cập nhật dữ liệu từ Google Sheet thành công!');
+          updateGoogleConfig({
+            ...googleConfig,
+            lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
+            syncStatus: 'success',
+          });
+        } else {
+          setSyncMessage(`Lỗi tải dữ liệu: ${data.error}`);
+          updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+        }
       }
     } catch (err: any) {
       setSyncMessage(`Lỗi kết nối: ${err.message}`);
