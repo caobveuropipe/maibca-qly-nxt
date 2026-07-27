@@ -343,17 +343,20 @@ export default function App() {
 
     try {
       if (googleConfig.gasWebappUrl) {
-        // Direct GAS WebApp Post
-        const res = await fetch(googleConfig.gasWebappUrl, {
+        // Call GAS via server proxy to avoid browser CORS issues
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'SYNC_UP',
-            pin: googleConfig.gasPin || '123456',
-            userEmail: googleConfig.userEmail || 'admin@system.local',
-            warehouses,
-            products,
-            transactions,
+            gasUrl: googleConfig.gasWebappUrl,
+            payload: {
+              action: 'SYNC_UP',
+              pin: googleConfig.gasPin || '123456',
+              userEmail: googleConfig.userEmail || 'admin@system.local',
+              warehouses,
+              products,
+              transactions,
+            },
           }),
         });
 
@@ -391,13 +394,16 @@ export default function App() {
 
     try {
       if (googleConfig.gasWebappUrl) {
-        // Direct GAS WebApp Pull
-        const res = await fetch(googleConfig.gasWebappUrl, {
+        // Call GAS via server proxy to avoid browser CORS issues
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'SYNC_DOWN',
-            pin: googleConfig.gasPin || '123456',
+            gasUrl: googleConfig.gasWebappUrl,
+            payload: {
+              action: 'SYNC_DOWN',
+              pin: googleConfig.gasPin || '123456',
+            },
           }),
         });
 

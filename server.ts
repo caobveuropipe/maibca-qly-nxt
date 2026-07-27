@@ -170,6 +170,39 @@ app.get('/api/health', (req, res) => {
 });
 
 /**
+ * GAS Proxy — forwards requests from frontend to Google Apps Script WebApp
+ * Bypasses browser CORS since server-to-server calls have no CORS restriction
+ */
+app.post('/api/gas-proxy', async (req, res) => {
+  const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzNuC3kUO_pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw/exec';
+  const targetUrl = req.body?.gasUrl || GAS_WEBAPP_URL;
+
+  try {
+    const payload = req.body?.payload || req.body;
+
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      redirect: 'follow',
+    });
+
+    const text = await response.text();
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.status(502).json({ success: false, error: `GAS trả về không phải JSON: ${text.substring(0, 200)}` });
+    }
+
+    res.json(data);
+  } catch (err: any) {
+    console.error('[GAS Proxy Error]', err.message);
+    res.status(500).json({ success: false, error: `Lỗi kết nối tới GAS: ${err.message}` });
+  }
+});
+
+/**
  * Create a new Google Sheet for Inventory Management
  */
 app.post('/api/sheets/create', async (req, res) => {
