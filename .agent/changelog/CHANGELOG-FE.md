@@ -8,6 +8,11 @@
 
 ## 2026-07-28
 
+### fix: Khắc phục menu chọn Kho/Sản phẩm bị che khuất & Mở rộng không gian Lập Phiếu
+- Nâng cấp `SearchableSelect.tsx` sử dụng **Fixed Floating Popover Position Engine** (`position: fixed`, `z-index: 9999`). Danh sách chọn Kho và Sản phẩm nay **nổi hoàn toàn lên trên cùng**, không bao giờ bị cắt/ẩn bởi khung bảng hay thanh cuộn.
+- Mở rộng kích thước Modal Lập Phiếu (`TransactionModal.tsx`) lên `max-w-7xl` (`96vw`), tăng chiều cao tối đa của Bảng tính chi tiết lên `max-h-[55vh]` giúp hiển thị 8-10 dòng hàng rộng rãi mượt mà.
+- Files: `src/components/SearchableSelect.tsx`, `src/components/TransactionModal.tsx`
+
 ### feat: Tự Động Đồng Bộ Realtime (Auto-Sync Engine)
 - Thêm cơ chế **Auto-Push ngầm (Debounce 1.5s)**: Tự động đẩy dữ liệu lên Google Sheet ngay sau khi Tạo/Sửa/Xóa Sản phẩm, Kho, Phiếu nhập xuất mà không cần bấm nút thủ công.
 - Thêm cơ chế **Auto-Pull Polling 30s ngầm**: Tự động tải dữ liệu mới từ Sheet về định kỳ mỗi 30 giây.
@@ -19,10 +24,6 @@
 - Cập nhật điều kiện kích hoạt các nút bấm đồng bộ trong `GoogleSheetsSyncView.tsx` khi người dùng nhập GAS WebApp URL.
 - Bổ sung thông báo lỗi gợi ý tiếng Việt rõ ràng khi người dùng chưa cấp quyền `Anyone` cho WebApp GAS.
 - Files: `src/App.tsx`, `src/components/GoogleSheetsSyncView.tsx`
-
-### docs: Khởi tạo hệ thống tài liệu Core Docs & Skill Pack
-- Thêm `.agent/CONTEXT.md`, `.agent/PROJECT_STRUCTURE.md`, `.agent/KNOWLEDGE_BASE.md` chuẩn hóa luồng làm việc.
-- Files: `.agent/CONTEXT.md`, `.agent/PROJECT_STRUCTURE.md`, `.agent/KNOWLEDGE_BASE.md`
 
 ---
 

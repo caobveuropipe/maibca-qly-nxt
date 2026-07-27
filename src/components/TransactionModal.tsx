@@ -261,8 +261,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   const brandText = isImport ? 'text-[#0F7B40]' : 'text-[#1A73E8]';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-300 dark:border-slate-700 w-full max-w-5xl max-h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150 font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-1.5 sm:p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-300 dark:border-slate-700 w-full sm:w-[96vw] max-w-7xl max-h-[96vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150 font-sans">
         
         {/* Excel / Sheets Ribbon Bar Header */}
         <div className={`${brandBg} text-white px-4 py-2.5 flex items-center justify-between shrink-0 shadow-sm`}>
@@ -458,7 +458,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             </div>
 
             {/* Table Grid */}
-            <div className="overflow-x-auto max-h-[380px]">
+            <div className="overflow-x-auto max-h-[55vh] min-h-[280px]">
               <table className="w-full text-left border-collapse min-w-[820px] text-xs font-sans">
                 <thead>
                   {/* Header Titles Bar */}

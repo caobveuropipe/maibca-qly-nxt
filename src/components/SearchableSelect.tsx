@@ -29,6 +29,12 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dropdownCoords, setDropdownCoords] = useState<{ top: number; left: number; width: number; placeAbove: boolean }>({
+    top: 0,
+    left: 0,
+    width: 260,
+    placeAbove: false,
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,6 +49,21 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     return matchLabel || matchSub || matchVal;
   });
 
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const placeAbove = spaceBelow < 240 && rect.top > 240;
+
+      setDropdownCoords({
+        top: placeAbove ? rect.top - 4 : rect.bottom + 4,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - Math.max(rect.width, 260) - 8)),
+        width: Math.max(rect.width, 260),
+        placeAbove,
+      });
+    }
+  };
+
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,12 +75,20 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Focus search input on open
+  // Update fixed position on open & listen to scroll/resize
   useEffect(() => {
     if (isOpen) {
+      updateCoords();
+      const handleScrollOrResize = () => updateCoords();
+      window.addEventListener('scroll', handleScrollOrResize, true);
+      window.addEventListener('resize', handleScrollOrResize);
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
+      return () => {
+        window.removeEventListener('scroll', handleScrollOrResize, true);
+        window.removeEventListener('resize', handleScrollOrResize);
+      };
     } else {
       setSearchTerm('');
     }
@@ -96,9 +125,19 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
       </button>
 
-      {/* Popover Dropdown */}
+      {/* Popover Dropdown (Fixed Floating Engine) */}
       {isOpen && (
-        <div className="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl overflow-hidden animate-in fade-in duration-100 min-w-[220px]">
+        <div
+          style={{
+            position: 'fixed',
+            top: dropdownCoords.placeAbove ? 'auto' : `${dropdownCoords.top}px`,
+            bottom: dropdownCoords.placeAbove ? `${window.innerHeight - dropdownCoords.top}px` : 'auto',
+            left: `${dropdownCoords.left}px`,
+            width: `${dropdownCoords.width}px`,
+            zIndex: 9999,
+          }}
+          className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg shadow-2xl overflow-hidden animate-in fade-in duration-100 min-w-[260px]"
+        >
           {/* Search Bar inside Dropdown */}
           <div className="p-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50">
             <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
