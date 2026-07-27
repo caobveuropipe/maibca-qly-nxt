@@ -52,35 +52,57 @@ function doPost(e) {
       // Đảm bảo cấu trúc sheet chuẩn tồn tại
       ensureSheetsExist(ss);
 
-      // Ghi DANH_MUC_KHO
+      // Ghi DANH_MUC_KHO (thêm cột ID để sync down khớp)
       var whRows = [
-        ["Mã Kho (*)", "Tên Kho (*)", "Địa Chỉ / Địa Điểm", "Người Quản Lý", "Số Điện Thoại"]
+        ["ID (Hệ Thống)", "Mã Kho (*)", "Tên Kho (*)", "Địa Chỉ / Địa Điểm", "Người Quản Lý", "Số Điện Thoại", "Kho Mặc Định"]
       ];
       warehouses.forEach(function(w) {
-        whRows.push([w.code || "", w.name || "", w.location || "", w.manager || "", w.phone || ""]);
+        whRows.push([
+          w.id || "",
+          w.code || "",
+          w.name || "",
+          w.location || "",
+          w.manager || "",
+          w.phone || "",
+          w.isDefault ? "TRUE" : "FALSE"
+        ]);
       });
       updateSheetData(ss, "DANH_MUC_KHO", whRows);
 
-      // Ghi DANH_MUC_SAN_PHAM
+      // Ghi DANH_MUC_SAN_PHAM (thêm cột ID và maxStock)
       var prodRows = [
-        ["Mã Sản Phẩm (*)", "Tên Sản Phẩm (*)", "Đơn Vị Tính (*)", "Nhóm Hàng", "Tồn Tối Thiểu", "Giá Nhập Tham Chiếu", "Giá Xuất Tham Chiếu", "Mô Tả"]
+        ["ID (Hệ Thống)", "Mã Sản Phẩm (*)", "Tên Sản Phẩm (*)", "Đơn Vị Tính (*)", "Nhóm Hàng", "Tồn Tối Thiểu", "Tồn Tối Đa", "Giá Nhập Tham Chiếu", "Giá Xuất Tham Chiếu", "Mô Tả"]
       ];
       products.forEach(function(p) {
-        prodRows.push([p.code || "", p.name || "", p.unit || "", p.category || "", p.minStock || 0, p.costPrice || 0, p.sellingPrice || 0, p.description || ""]);
+        prodRows.push([
+          p.id || "",
+          p.code || "",
+          p.name || "",
+          p.unit || "",
+          p.category || "",
+          p.minStock || 0,
+          p.maxStock || 0,
+          p.costPrice || 0,
+          p.sellingPrice || 0,
+          p.description || ""
+        ]);
       });
       updateSheetData(ss, "DANH_MUC_SAN_PHAM", prodRows);
 
-      // Ghi NHAP_XUAT_KHO
+      // Ghi NHAP_XUAT_KHO (thêm cột ID hệ thống để sync down khớp)
       var txRows = [
-        ["Mã Phiếu", "Loại Phiếu (Nhập/Xuất)", "Ngày (YYYY-MM-DD)", "Mã Kho", "Tên Kho", "Mã SP", "Tên Sản Phẩm", "Đơn Vị Tính", "Số Lượng", "Đơn Giá", "Thành Tiền", "Đối Tác / KH / NCC", "Ghi Chú"]
+        ["ID (Hệ Thống)", "Mã Phiếu", "Loại Phiếu (Nhập/Xuất)", "Ngày (YYYY-MM-DD)", "ID Kho", "Mã Kho", "Tên Kho", "ID SP", "Mã SP", "Tên Sản Phẩm", "Đơn Vị Tính", "Số Lượng", "Đơn Giá", "Thành Tiền", "Đối Tác / KH / NCC", "Ghi Chú"]
       ];
       transactions.forEach(function(t) {
         txRows.push([
+          t.id || "",
           t.voucherCode || "",
           t.type === "IMPORT" ? "Nhập" : "Xuất",
           t.date || "",
+          t.warehouseId || "",
           t.warehouseCode || "",
           t.warehouseName || "",
+          t.productId || "",
           t.productCode || "",
           t.productName || "",
           t.unit || "",
@@ -94,7 +116,7 @@ function doPost(e) {
       updateSheetData(ss, "NHAP_XUAT_KHO", txRows);
 
       // Ghi Nhật Ký
-      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công");
+      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu");
 
       return responseJSON({
         success: true,
@@ -106,62 +128,99 @@ function doPost(e) {
     if (action === "SYNC_DOWN") {
       ensureSheetsExist(ss);
 
-      // Đọc DANH_MUC_KHO
+      // Đọc DANH_MUC_KHO (có cột ID)
       var whSheet = ss.getSheetByName("DANH_MUC_KHO");
       var whData = whSheet ? whSheet.getDataRange().getValues() : [];
       var warehousesList = [];
+      
+      // Detect header: nếu cột đầu là "ID (Hệ Thống)" -> có ID
+      var whHasId = whData.length > 0 && String(whData[0][0]).indexOf("ID") !== -1;
+      
       for (var i = 1; i < whData.length; i++) {
         var row = whData[i];
-        if (row[0]) {
-          warehousesList.push({
-            id: "wh-gas-" + i,
-            code: String(row[0]),
-            name: String(row[1] || ""),
-            location: String(row[2] || ""),
-            manager: String(row[3] || ""),
-            phone: String(row[4] || ""),
-            isDefault: i === 1
-          });
-        }
+        var wCode = whHasId ? String(row[1] || "") : String(row[0] || "");
+        if (!wCode) continue;
+        warehousesList.push({
+          id: whHasId ? (String(row[0]) || ("wh-gas-" + i)) : ("wh-gas-" + i),
+          code: wCode,
+          name: String(whHasId ? row[2] : row[1] || ""),
+          location: String(whHasId ? row[3] : row[2] || ""),
+          manager: String(whHasId ? row[4] : row[3] || ""),
+          phone: String(whHasId ? row[5] : row[4] || ""),
+          isDefault: whHasId ? (String(row[6]).toUpperCase() === "TRUE") : (i === 1)
+        });
       }
 
-      // Đọc DANH_MUC_SAN_PHAM
+      // Đọc DANH_MUC_SAN_PHAM (có cột ID và maxStock)
       var prodSheet = ss.getSheetByName("DANH_MUC_SAN_PHAM");
       var prodData = prodSheet ? prodSheet.getDataRange().getValues() : [];
       var productsList = [];
+      
+      var pHasId = prodData.length > 0 && String(prodData[0][0]).indexOf("ID") !== -1;
+      
       for (var j = 1; j < prodData.length; j++) {
         var pRow = prodData[j];
-        if (pRow[0]) {
-          productsList.push({
-            id: "prod-gas-" + j,
-            code: String(pRow[0]),
-            name: String(pRow[1] || ""),
-            unit: String(pRow[2] || "Cái"),
-            category: String(pRow[3] || ""),
-            minStock: Number(pRow[4] || 0),
-            costPrice: Number(pRow[5] || 0),
-            sellingPrice: Number(pRow[6] || 0),
-            description: String(pRow[7] || "")
-          });
-        }
+        var pCode = pHasId ? String(pRow[1] || "") : String(pRow[0] || "");
+        if (!pCode) continue;
+        productsList.push({
+          id: pHasId ? (String(pRow[0]) || ("prod-gas-" + j)) : ("prod-gas-" + j),
+          code: pCode,
+          name: String(pHasId ? pRow[2] : pRow[1] || ""),
+          unit: String(pHasId ? pRow[3] : pRow[2] || "Cái"),
+          category: String(pHasId ? pRow[4] : pRow[3] || ""),
+          minStock: Number(pHasId ? pRow[5] : pRow[4] || 0),
+          maxStock: Number(pHasId ? pRow[6] : 0),
+          costPrice: Number(pHasId ? pRow[7] : pRow[5] || 0),
+          sellingPrice: Number(pHasId ? pRow[8] : pRow[6] || 0),
+          description: String(pHasId ? pRow[9] : pRow[7] || "")
+        });
       }
 
-      // Đọc NHAP_XUAT_KHO
+      // Đọc NHAP_XUAT_KHO (có cột ID)
       var txSheet = ss.getSheetByName("NHAP_XUAT_KHO");
       var txData = txSheet ? txSheet.getDataRange().getValues() : [];
       var transactionsList = [];
+      
+      var tHasId = txData.length > 0 && String(txData[0][0]).indexOf("ID") !== -1;
+      
       for (var k = 1; k < txData.length; k++) {
         var tRow = txData[k];
-        if (tRow[0]) {
-          var typeStr = String(tRow[1] || "").toLowerCase();
-          var isImport = typeStr.indexOf("nhập") !== -1 || typeStr === "import";
+        var vCode = tHasId ? String(tRow[1] || "") : String(tRow[0] || "");
+        if (!vCode) continue;
+        var typeStr = tHasId ? String(tRow[2] || "") : String(tRow[1] || "");
+        var isImport = typeStr.indexOf("Nhập") !== -1 || typeStr.toLowerCase() === "import";
+        
+        if (tHasId) {
+          transactionsList.push({
+            id: String(tRow[0]) || ("tx-gas-" + k),
+            voucherCode: vCode,
+            type: isImport ? "IMPORT" : "EXPORT",
+            date: formatDate(tRow[3]),
+            warehouseId: String(tRow[4] || ""),
+            warehouseCode: String(tRow[5] || ""),
+            warehouseName: String(tRow[6] || ""),
+            productId: String(tRow[7] || ""),
+            productCode: String(tRow[8] || ""),
+            productName: String(tRow[9] || ""),
+            unit: String(tRow[10] || ""),
+            quantity: Number(tRow[11] || 0),
+            unitPrice: Number(tRow[12] || 0),
+            totalAmount: Number(tRow[13] || 0),
+            partner: String(tRow[14] || ""),
+            note: String(tRow[15] || ""),
+            createdAt: new Date().toISOString()
+          });
+        } else {
+          // Format cũ (không có cột ID)
           transactionsList.push({
             id: "tx-gas-" + k,
-            voucherCode: String(tRow[0]),
+            voucherCode: vCode,
             type: isImport ? "IMPORT" : "EXPORT",
             date: formatDate(tRow[2]),
+            warehouseId: "",
             warehouseCode: String(tRow[3] || ""),
             warehouseName: String(tRow[4] || ""),
+            productId: "",
             productCode: String(tRow[5] || ""),
             productName: String(tRow[6] || ""),
             unit: String(tRow[7] || ""),
@@ -174,6 +233,8 @@ function doPost(e) {
           });
         }
       }
+
+      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu");
 
       return responseJSON({
         success: true,
@@ -215,6 +276,13 @@ function updateSheetData(ss, sheetName, values) {
   sheet.clearContents();
   if (values && values.length > 0) {
     sheet.getRange(1, 1, values.length, values[0].length).setValues(values);
+    // Format header row
+    var headerRange = sheet.getRange(1, 1, 1, values[0].length);
+    headerRange.setFontWeight("bold");
+    headerRange.setBackground("#1e293b");
+    headerRange.setFontColor("#ffffff");
+    sheet.setFrozenRows(1);
+    sheet.autoResizeColumns(1, values[0].length);
   }
 }
 
@@ -225,6 +293,11 @@ function writeLog(ss, email, action, status) {
     
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(["Thời Gian", "Email / Người Dùng", "Thao Tác", "Trạng Thái"]);
+      var hdr = sheet.getRange(1, 1, 1, 4);
+      hdr.setFontWeight("bold");
+      hdr.setBackground("#1e293b");
+      hdr.setFontColor("#ffffff");
+      sheet.setFrozenRows(1);
     }
     sheet.appendRow([new Date().toLocaleString("vi-VN"), email, action, status]);
   } catch (e) {}
