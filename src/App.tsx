@@ -12,6 +12,9 @@ import {
   saveWarehousesToLocal,
   saveTransactionsToLocal,
   saveGoogleConfigToLocal,
+  loadCategories,
+  saveCategoriesToLocal,
+  DEFAULT_CATEGORIES,
 } from './utils/storageUtils';
 
 import { Header, ActiveTab } from './components/Header';
@@ -26,6 +29,7 @@ import { ProductModal } from './components/ProductModal';
 import { WarehouseModal } from './components/WarehouseModal';
 import { ExcelUploadModal } from './components/ExcelUploadModal';
 import { VoucherDetailModal } from './components/VoucherDetailModal';
+import { CategoryManagerModal } from './components/CategoryManagerModal';
 
 export default function App() {
   // State
@@ -58,6 +62,8 @@ export default function App() {
   const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
 
   const [isExcelUploadOpen, setIsExcelUploadOpen] = useState(false);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [categories, setCategories] = useState<string[]>(() => loadCategories());
 
   // Initial Load
   useEffect(() => {
@@ -87,6 +93,11 @@ export default function App() {
   const updateGoogleConfig = (newConfig: GoogleSyncConfig) => {
     setGoogleConfig(newConfig);
     saveGoogleConfigToLocal(newConfig);
+  };
+
+  const updateCategories = (newCategories: string[]) => {
+    setCategories(newCategories);
+    saveCategoriesToLocal(newCategories);
   };
 
   // Transaction Handlers
@@ -503,6 +514,7 @@ export default function App() {
             products={products}
             warehouses={warehouses}
             transactions={transactions}
+            categories={categories}
             onOpenAddModal={() => {
               setEditingProduct(null);
               setIsProductModalOpen(true);
@@ -513,6 +525,7 @@ export default function App() {
             }}
             onDeleteProduct={handleDeleteProduct}
             onViewStockCard={handleViewStockCard}
+            onManageCategories={() => setIsCategoryManagerOpen(true)}
           />
         )}
 
@@ -594,6 +607,14 @@ export default function App() {
         onSave={handleSaveProduct}
         initialProduct={editingProduct}
         existingProducts={products}
+        categories={categories}
+      />
+
+      <CategoryManagerModal
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+        categories={categories}
+        onUpdateCategories={updateCategories}
       />
 
       <WarehouseModal

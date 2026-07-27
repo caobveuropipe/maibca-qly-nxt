@@ -1,36 +1,37 @@
 import React, { useState } from 'react';
 import { Product, Warehouse, Transaction } from '../types';
 import { formatVND, formatNum, calculateStockSummary } from '../utils/storageUtils';
-import { Search, Plus, Edit3, Trash2, Package, Filter, FileText, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { Search, Plus, Edit3, Trash2, Package, Filter, FileText, Tag } from 'lucide-react';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
 
 interface ProductsViewProps {
   products: Product[];
   warehouses: Warehouse[];
   transactions: Transaction[];
+  categories: string[];
   onOpenAddModal: () => void;
   onOpenEditModal: (product: Product) => void;
   onDeleteProduct: (productId: string) => void;
   onViewStockCard: (productId: string) => void;
+  onManageCategories: () => void;
 }
 
 export const ProductsView: React.FC<ProductsViewProps> = ({
   products,
   warehouses,
   transactions,
+  categories,
   onOpenAddModal,
   onOpenEditModal,
   onDeleteProduct,
   onViewStockCard,
+  onManageCategories,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
 
   // Compute live stock quantities per product
   const stockSummary = calculateStockSummary(products, transactions, 'ALL');
-
-  // Categories list
-  const categories = Array.from(new Set(products.map((p) => p.category)));
 
   // Filtered products
   const filteredProducts = products.filter((p) => {
@@ -40,6 +41,10 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
     const matchesCat = selectedCategory === 'ALL' || p.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
+
+  // Build filter options from categories prop (managed list) + any extra in products
+  const allCatsInProducts = Array.from(new Set(products.map((p) => p.category)));
+  const filterCategories = Array.from(new Set([...categories, ...allCatsInProducts]));
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -54,12 +59,22 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onOpenAddModal}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Thêm Mặt Hàng Mới
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={onManageCategories}
+            className="px-3 py-2 bg-violet-50 dark:bg-violet-950/30 hover:bg-violet-100 dark:hover:bg-violet-950/50 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 font-semibold text-xs rounded-md flex items-center gap-1.5 transition-all"
+            title="Quản lý danh sách nhóm hàng"
+          >
+            <Tag className="w-3.5 h-3.5" />
+            Nhóm Hàng ({categories.length})
+          </button>
+          <button
+            onClick={onOpenAddModal}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all"
+          >
+            <Plus className="w-4 h-4" /> Thêm Mặt Hàng Mới
+          </button>
+        </div>
       </div>
 
       {/* Filter Controls */}
@@ -80,7 +95,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
           <SearchableSelect
             options={[
               { value: 'ALL', label: 'Tất cả nhóm hàng' },
-              ...categories.map((cat) => ({ value: cat, label: cat })),
+              ...filterCategories.map((cat) => ({ value: cat, label: cat })),
             ]}
             value={selectedCategory}
             onChange={setSelectedCategory}
@@ -134,7 +149,7 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                       {p.unit}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800">
                         {p.category}
                       </span>
                     </td>

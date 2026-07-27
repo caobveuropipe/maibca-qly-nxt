@@ -9,6 +9,7 @@ interface ProductModalProps {
   onSave: (product: Omit<Product, 'id'>) => void;
   initialProduct?: Product | null;
   existingProducts: Product[];
+  categories: string[];
 }
 
 export const ProductModal: React.FC<ProductModalProps> = ({
@@ -17,6 +18,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onSave,
   initialProduct,
   existingProducts,
+  categories,
 }) => {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -175,13 +177,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 Nhóm Hàng
               </label>
               <SearchableSelect
-                options={[
-                  { value: 'Thiết Bị', label: 'Thiết Bị' },
-                  { value: 'Vật Tư In Phụ Kiện', label: 'Vật Tư In Phụ Kiện' },
-                  { value: 'Bao Bì Đóng Gói', label: 'Bao Bì Đóng Gói' },
-                  { value: 'Linh Kiện', label: 'Linh Kiện' },
-                  { value: 'Khác', label: 'Khác' },
-                ]}
+                options={categories.map(c => ({ value: c, label: c }))}
                 value={category}
                 onChange={setCategory}
                 placeholder="Chọn nhóm hàng..."

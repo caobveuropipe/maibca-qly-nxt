@@ -8,6 +8,23 @@ const LOCAL_STORAGE_KEY_PRODUCTS = 'nxt_inventory_products_v1';
 const LOCAL_STORAGE_KEY_WAREHOUSES = 'nxt_inventory_warehouses_v1';
 const LOCAL_STORAGE_KEY_TRANSACTIONS = 'nxt_inventory_transactions_v1';
 const LOCAL_STORAGE_KEY_GOOGLE_CONFIG = 'nxt_inventory_google_config_v1';
+const LOCAL_STORAGE_KEY_CATEGORIES = 'nxt_inventory_categories_v1';
+
+export const DEFAULT_CATEGORIES = ['Thiết Bị', 'Vật Tư In Phụ Kiện', 'Bao Bì Đóng Gói', 'Linh Kiện', 'Khác'];
+
+export const loadCategories = (): string[] => {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CATEGORIES);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load categories:', e);
+  }
+  return [...DEFAULT_CATEGORIES];
+};
+
+export const saveCategoriesToLocal = (categories: string[]) => {
+  localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+};
 
 // Initial state loader
 export const loadInitialState = () => {
