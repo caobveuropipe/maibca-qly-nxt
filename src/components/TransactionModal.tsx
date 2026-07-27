@@ -3,6 +3,7 @@ import { Product, Warehouse, Transaction, TransactionType } from '../types';
 import { X, ArrowDownRight, ArrowUpRight, Plus, AlertCircle, Trash2, Table, FileSpreadsheet, CheckCircle2, CornerDownLeft } from 'lucide-react';
 import { formatNum } from '../utils/storageUtils';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
+import { FormattedNumberInput } from './FormattedNumberInput';
 
 interface TransactionItemRow {
   id: string;
@@ -534,13 +535,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
                         {/* Quantity Cell */}
                         <td className="p-1.5 border-r border-slate-200 dark:border-slate-800 min-w-[150px] w-40">
-                          <input
-                            type="number"
-                            min="1"
+                          <FormattedNumberInput
+                            min={1}
                             value={item.quantity}
                             onFocus={() => setActiveCell(`qty-${item.id}`)}
                             onBlur={() => setActiveCell(null)}
-                            onChange={(e) => handleItemChange(item.id, 'quantity', Math.max(1, parseInt(e.target.value) || 0))}
+                            onChange={(val) => handleItemChange(item.id, 'quantity', val)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();

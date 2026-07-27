@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { X, Package, Save, Plus } from 'lucide-react';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
+import { FormattedNumberInput } from './FormattedNumberInput';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -188,12 +189,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Tồn Tối Thiểu (Cảnh báo)
               </label>
-              <input
-                type="number"
-                min="0"
+              <FormattedNumberInput
+                min={0}
                 value={minStock}
-                onChange={(e) => setMinStock(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                onChange={setMinStock}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs focus:ring-2 focus:ring-blue-500 outline-none font-mono font-bold"
               />
             </div>
 
@@ -201,12 +201,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Tồn Tối Đa
               </label>
-              <input
-                type="number"
-                min="0"
+              <FormattedNumberInput
+                min={0}
                 value={maxStock}
-                onChange={(e) => setMaxStock(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                onChange={setMaxStock}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md text-xs focus:ring-2 focus:ring-blue-500 outline-none font-mono font-bold"
               />
             </div>
           </div>
