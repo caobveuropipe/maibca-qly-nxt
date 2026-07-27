@@ -270,7 +270,7 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
             </p>
             <button
               onClick={onSyncUp}
-              disabled={isSyncing || !config.spreadsheetId}
+              disabled={isSyncing || (!config.gasWebappUrl && !config.spreadsheetId)}
               className="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold text-xs rounded-md shadow-sm flex items-center justify-center gap-2 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
@@ -288,7 +288,7 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
             </p>
             <button
               onClick={onSyncDown}
-              disabled={isSyncing || !config.spreadsheetId}
+              disabled={isSyncing || (!config.gasWebappUrl && !config.spreadsheetId)}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs rounded-md shadow-sm flex items-center justify-center gap-2 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />

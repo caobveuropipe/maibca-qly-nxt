@@ -335,7 +335,7 @@ export default function App() {
   const handleSyncUp = async () => {
     if (!googleConfig.gasWebappUrl && !googleConfig.spreadsheetId) {
       setActiveTab('sheets');
-      alert('Vui lòng nhập Google Apps Script WebApp URL hoặc Spreadsheet ID!');
+      alert('Vui lòng nhập Google Apps Script WebApp URL!');
       return;
     }
     setIsSyncing(true);
@@ -343,21 +343,21 @@ export default function App() {
 
     try {
       if (googleConfig.gasWebappUrl) {
-        // Call GAS via server proxy to avoid browser CORS issues
-        const res = await fetch('/api/gas-proxy', {
+        // Direct Client fetch to Google Apps Script WebApp (Simple Request avoids CORS preflight)
+        const payload = {
+          action: 'SYNC_UP',
+          pin: googleConfig.gasPin || '123456',
+          userEmail: googleConfig.userEmail || 'admin@system.local',
+          warehouses,
+          products,
+          transactions,
+        };
+
+        const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            gasUrl: googleConfig.gasWebappUrl,
-            payload: {
-              action: 'SYNC_UP',
-              pin: googleConfig.gasPin || '123456',
-              userEmail: googleConfig.userEmail || 'admin@system.local',
-              warehouses,
-              products,
-              transactions,
-            },
-          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
         });
 
         const text = await res.text();
@@ -365,7 +365,7 @@ export default function App() {
         try {
           data = JSON.parse(text);
         } catch {
-          throw new Error(`Server Vercel phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+          throw new Error('Không thể đọc dữ liệu trả về từ Google Apps Script WebApp. Vui lòng kiểm tra đã chọn "Anyone" (Bất kỳ ai) khi Deploy WebApp chưa.');
         }
 
         if (data.success) {
@@ -393,7 +393,7 @@ export default function App() {
   const handleSyncDown = async () => {
     if (!googleConfig.gasWebappUrl && !googleConfig.spreadsheetId) {
       setActiveTab('sheets');
-      alert('Vui lòng nhập Google Apps Script WebApp URL hoặc Spreadsheet ID!');
+      alert('Vui lòng nhập Google Apps Script WebApp URL!');
       return;
     }
     setIsSyncing(true);
@@ -401,17 +401,17 @@ export default function App() {
 
     try {
       if (googleConfig.gasWebappUrl) {
-        // Call GAS via server proxy to avoid browser CORS issues
-        const res = await fetch('/api/gas-proxy', {
+        // Direct Client fetch to Google Apps Script WebApp (Simple Request avoids CORS preflight)
+        const payload = {
+          action: 'SYNC_DOWN',
+          pin: googleConfig.gasPin || '123456',
+        };
+
+        const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            gasUrl: googleConfig.gasWebappUrl,
-            payload: {
-              action: 'SYNC_DOWN',
-              pin: googleConfig.gasPin || '123456',
-            },
-          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
         });
 
         const text = await res.text();
@@ -419,7 +419,7 @@ export default function App() {
         try {
           data = JSON.parse(text);
         } catch {
-          throw new Error(`Server Vercel phản hồi lỗi (HTTP ${res.status}): ${text.substring(0, 150)}...`);
+          throw new Error('Không thể đọc dữ liệu trả về từ Google Apps Script WebApp. Vui lòng kiểm tra đã chọn "Anyone" (Bất kỳ ai) khi Deploy WebApp chưa.');
         }
 
         if (data.success && data.data) {
