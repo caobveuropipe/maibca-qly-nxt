@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Product, Warehouse, Transaction } from '../types';
+import { Product, Warehouse, Transaction, UserRole } from '../types';
 import { formatVND, formatNum, calculateStockSummary } from '../utils/storageUtils';
 import { Search, Plus, Edit3, Trash2, Package, Filter, FileText, Tag } from 'lucide-react';
 import { SearchableSelect, SelectOption } from './SearchableSelect';
@@ -9,6 +8,7 @@ interface ProductsViewProps {
   warehouses: Warehouse[];
   transactions: Transaction[];
   categories: string[];
+  userRole?: UserRole;
   onOpenAddModal: () => void;
   onOpenEditModal: (product: Product) => void;
   onDeleteProduct: (productId: string) => void;
@@ -21,12 +21,14 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
   warehouses,
   transactions,
   categories,
+  userRole = 'ADMIN',
   onOpenAddModal,
   onOpenEditModal,
   onDeleteProduct,
   onViewStockCard,
   onManageCategories,
 }) => {
+  const isViewer = userRole === 'VIEWER';
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
 
@@ -59,22 +61,24 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={onManageCategories}
-            className="px-3 py-2 bg-violet-50 dark:bg-violet-950/30 hover:bg-violet-100 dark:hover:bg-violet-950/50 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 font-semibold text-xs rounded-md flex items-center gap-1.5 transition-all"
-            title="Quản lý danh sách nhóm hàng"
-          >
-            <Tag className="w-3.5 h-3.5" />
-            Nhóm Hàng ({categories.length})
-          </button>
-          <button
-            onClick={onOpenAddModal}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all"
-          >
-            <Plus className="w-4 h-4" /> Thêm Mặt Hàng Mới
-          </button>
-        </div>
+        {!isViewer && (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={onManageCategories}
+              className="px-3 py-2 bg-violet-50 dark:bg-violet-950/30 hover:bg-violet-100 dark:hover:bg-violet-950/50 border border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300 font-semibold text-xs rounded-md flex items-center gap-1.5 transition-all"
+              title="Quản lý danh sách nhóm hàng"
+            >
+              <Tag className="w-3.5 h-3.5" />
+              Nhóm Hàng ({categories.length})
+            </button>
+            <button
+              onClick={onOpenAddModal}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all"
+            >
+              <Plus className="w-4 h-4" /> Thêm Mặt Hàng Mới
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter Controls */}
@@ -176,20 +180,24 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                         >
                           <FileText className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => onOpenEditModal(p)}
-                          title="Sửa mặt hàng"
-                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-400 transition-colors"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => onDeleteProduct(p.id)}
-                          title="Xóa mặt hàng"
-                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-red-500 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {!isViewer && (
+                          <>
+                            <button
+                              onClick={() => onOpenEditModal(p)}
+                              title="Sửa mặt hàng"
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-400 transition-colors"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => onDeleteProduct(p.id)}
+                              title="Xóa mặt hàng"
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-red-500 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

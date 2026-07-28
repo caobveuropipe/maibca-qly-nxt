@@ -35,6 +35,8 @@ export const loadInitialState = () => {
     spreadsheetId: '',
     spreadsheetUrl: '',
     gasWebappUrl: 'https://script.google.com/macros/s/AKfycbxNuC3kUO_pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw/exec',
+    userRole: 'ADMIN',
+    adminPin: '123456',
     autoSync: false,
     syncStatus: 'idle',
     idToken: '',

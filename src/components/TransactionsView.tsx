@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Transaction, Warehouse, Product } from '../types';
+import { Transaction, Warehouse, Product, UserRole } from '../types';
 import { formatVND, formatNum } from '../utils/storageUtils';
 import { generateVoucherPDF } from '../utils/pdfUtils';
 import {
@@ -20,6 +20,7 @@ interface TransactionsViewProps {
   transactions: Transaction[];
   warehouses: Warehouse[];
   products: Product[];
+  userRole?: UserRole;
   onOpenImportModal: () => void;
   onOpenExportModal: () => void;
   onDeleteTransaction: (id: string) => void;
@@ -31,12 +32,14 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
   transactions,
   warehouses,
   products,
+  userRole = 'ADMIN',
   onOpenImportModal,
   onOpenExportModal,
   onDeleteTransaction,
   onSelectVoucher,
   onEditVoucher,
 }) => {
+  const isViewer = userRole === 'VIEWER';
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'IMPORT' | 'EXPORT'>('ALL');
   const [warehouseFilter, setWarehouseFilter] = useState<string>('ALL');
@@ -93,20 +96,22 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onOpenImportModal}
-            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-md shadow-sm shadow-emerald-900/20 flex items-center gap-1.5 transition-all"
-          >
-            <ArrowDownRight className="w-4 h-4" /> + Phiếu Nhập
-          </button>
-          <button
-            onClick={onOpenExportModal}
-            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all"
-          >
-            <ArrowUpRight className="w-4 h-4" /> + Phiếu Xuất
-          </button>
-        </div>
+        {!isViewer && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenImportModal}
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-md shadow-sm shadow-emerald-900/20 flex items-center gap-1.5 transition-all"
+            >
+              <ArrowDownRight className="w-4 h-4" /> + Phiếu Nhập
+            </button>
+            <button
+              onClick={onOpenExportModal}
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all"
+            >
+              <ArrowUpRight className="w-4 h-4" /> + Phiếu Xuất
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter Toolbar */}

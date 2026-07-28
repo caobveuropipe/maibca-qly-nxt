@@ -83,11 +83,15 @@ export interface StockCardItem {
   totalAmount: number;
 }
 
+export type UserRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
+
 export interface GoogleSyncConfig {
   spreadsheetId: string;
   spreadsheetUrl: string;
   gasWebappUrl?: string;
   gasPin?: string;
+  adminPin?: string;
+  userRole?: UserRole;
   autoSync: boolean;
   lastSyncedAt?: string;
   syncStatus: 'idle' | 'syncing' | 'success' | 'error';

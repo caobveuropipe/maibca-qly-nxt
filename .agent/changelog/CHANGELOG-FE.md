@@ -8,22 +8,18 @@
 
 ## 2026-07-28
 
+### feat: Phân Quyền 3 Cấp (ADMIN / EDITOR / VIEWER) & Tự Động Kết Nối Qua Link (0-Setup)
+- Bổ sung tính năng **Auto-Connect qua Link Chia Sẻ**: Thêm nút `"📋 Copy Link Chia Sẻ Cho Nhân Viên"` trong tab Cấu hình. Nhân viên mở đường link được gửi trên bất kỳ thiết bị/trình duyệt nào ➔ Ứng dụng **tự động kết nối ngầm với Google Sheet ngay lập tức (0-Setup)**, không cần dán URL hay cấu hình lại từ đầu.
+- Tích hợp **Hệ thống Phân Quyền 3 Vai Trò (RBAC)**:
+  - **👑 ADMIN (Quản Trị Viên):** Toàn quyền truy cập, cài đặt Google Sheet, quản lý mã PIN Admin và chức năng Xóa Dữ Liệu.
+  - **✏️ EDITOR (Nhân Viên Kho):** Quyền Tạo/Sửa phiếu nhập xuất, thêm sản phẩm. Ẩn hoàn toàn tab Cấu hình Sheet và nút Xóa Dữ Liệu.
+  - **👁️ VIEWER (Chỉ Xem Báo Cáo):** Chế độ Read-Only chỉ được xem Báo Cáo NXT & Thẻ Kho. Ẩn tất cả nút Thêm/Sửa/Xóa.
+- Thêm Badge Vai Trò & Modal Đổi Vai Trò bằng mã PIN Admin trên Header (`Header.tsx`).
+- Files: `src/types.ts`, `src/App.tsx`, `src/components/Header.tsx`, `src/components/GoogleSheetsSyncView.tsx`, `src/components/ProductsView.tsx`, `src/components/WarehousesView.tsx`, `src/components/TransactionsView.tsx`
+
 ### feat: Định dạng số hàng nghìn và thập phân Realtime khi nhập liệu (`FormattedNumberInput`)
-- Tạo mới component `FormattedNumberInput.tsx` tự động chèn **dấu chấm phân cách hàng nghìn (`.`)** và **dấu phẩy thập phân (`,`)** trực tiếp trong lúc người dùng gõ phím (VD: gõ `1000` ➔ tự động thành `1.000`, gõ `100000` ➔ tự động thành `100.000`).
-- Thay thế ô nhập Số Lượng trong Modal Lập Phiếu (`TransactionModal.tsx`) và ô Tồn tối thiểu/Tồn tối đa trong Modal Sản Phẩm (`ProductModal.tsx`).
-- Giúp người dùng nhìn rõ từng hàng đơn vị, tránh hoàn toàn rủi ro nhập thừa/thiếu số 0 gây sai lệch kho hàng.
+- Tạo mới component `FormattedNumberInput.tsx` tự động chèn **dấu chấm phân cách hàng nghìn (`.`)** và **dấu phẩy thập phân (`,`)** trực tiếp trong lúc người dùng gõ phím.
 - Files: `src/components/FormattedNumberInput.tsx`, `src/components/TransactionModal.tsx`, `src/components/ProductModal.tsx`
-
-### fix: Khắc phục menu chọn Kho/Sản phẩm bị che khuất & Mở rộng không gian Lập Phiếu
-- Nâng cấp `SearchableSelect.tsx` sử dụng **Fixed Floating Popover Position Engine** (`position: fixed`, `z-index: 9999`). Danh sách chọn Kho và Sản phẩm nay **nổi hoàn toàn lên trên cùng**, không bao giờ bị cắt/ẩn bởi khung bảng hay thanh cuộn.
-- Mở rộng kích thước Modal Lập Phiếu (`TransactionModal.tsx`) lên `max-w-7xl` (`96vw`), tăng chiều cao tối đa của Bảng tính chi tiết lên `max-h-[55vh]` giúp hiển thị 8-10 dòng hàng rộng rãi mượt mà.
-- Files: `src/components/SearchableSelect.tsx`, `src/components/TransactionModal.tsx`
-
-### feat: Tự Động Đồng Bộ Realtime (Auto-Sync Engine)
-- Thêm cơ chế **Auto-Push ngầm (Debounce 1.5s)**: Tự động đẩy dữ liệu lên Google Sheet ngay sau khi Tạo/Sửa/Xóa Sản phẩm, Kho, Phiếu nhập xuất mà không cần bấm nút thủ công.
-- Thêm cơ chế **Auto-Pull Polling 30s ngầm**: Tự động tải dữ liệu mới từ Sheet về định kỳ mỗi 30 giây.
-- Thêm Toggle Switch `Tự Động Đồng Bộ Realtime` và Badge trạng thái sinh động trong `GoogleSheetsSyncView.tsx`.
-- Files: `src/App.tsx`, `src/components/GoogleSheetsSyncView.tsx`
 
 ---
 

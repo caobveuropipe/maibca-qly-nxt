@@ -14,6 +14,9 @@ import {
   User,
   LogOut,
   ShieldCheck,
+  Copy,
+  Link,
+  KeyRound,
 } from 'lucide-react';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -221,6 +224,29 @@ export const GoogleSheetsSyncView: React.FC<GoogleSheetsSyncViewProps> = ({
         </div>
 
         <div className="space-y-4">
+          {/* Share Link Generator for Staff */}
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 rounded-xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <Link className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Link Chia Sẻ Cho Nhân Viên (Tự Động Kết Nối 0-Setup)
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const shareUrl = `${window.location.origin}${window.location.pathname}?gasUrl=${encodeURIComponent(config.gasWebappUrl || '')}`;
+                  navigator.clipboard.writeText(shareUrl);
+                  alert('Đã copy Link Chia Sẻ! Hãy gửi link này cho nhân viên. Nhân viên chỉ cần mở link là tự động kết nối ngầm!');
+                }}
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copy Link Chia Sẻ
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Gửi đường link này cho nhân viên khác. Nhân viên mở link trên máy bất kỳ là ứng dụng **tự động lưu cấu hình và kết nối ngay lập tức**, không phải dán URL hay setup lại từ đầu!
+            </p>
+          </div>
+
           {/* Realtime Auto Sync Toggle */}
           <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">

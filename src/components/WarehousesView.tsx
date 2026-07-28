@@ -1,5 +1,4 @@
-import React from 'react';
-import { Warehouse, Product, Transaction } from '../types';
+import { Warehouse, Product, Transaction, UserRole } from '../types';
 import { calculateStockSummary, formatNum } from '../utils/storageUtils';
 import { Warehouse as WarehouseIcon, Plus, MapPin, User, Phone, Edit3, Trash2, Boxes } from 'lucide-react';
 
@@ -7,6 +6,7 @@ interface WarehousesViewProps {
   warehouses: Warehouse[];
   products: Product[];
   transactions: Transaction[];
+  userRole?: UserRole;
   onOpenAddModal: () => void;
   onOpenEditModal: (warehouse: Warehouse) => void;
   onDeleteWarehouse: (warehouseId: string) => void;
@@ -16,10 +16,13 @@ export const WarehousesView: React.FC<WarehousesViewProps> = ({
   warehouses,
   products,
   transactions,
+  userRole = 'ADMIN',
   onOpenAddModal,
   onOpenEditModal,
   onDeleteWarehouse,
 }) => {
+  const isViewer = userRole === 'VIEWER';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
@@ -33,12 +36,14 @@ export const WarehousesView: React.FC<WarehousesViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onOpenAddModal}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Thêm Kho Hàng Mới
-        </button>
+        {!isViewer && (
+          <button
+            onClick={onOpenAddModal}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all shrink-0"
+          >
+            <Plus className="w-4 h-4" /> Thêm Kho Hàng Mới
+          </button>
+        )}
       </div>
 
       {/* Warehouse Cards Grid */}

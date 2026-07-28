@@ -69,13 +69,39 @@ export default function App() {
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>(() => loadCategories());
 
-  // Initial Load
+  // Initial Load & Auto Connect via Link Query Parameter (?gasUrl=... or ?appUrl=...)
   useEffect(() => {
     const { products: p, warehouses: w, transactions: t, googleConfig: g } = loadInitialState();
+
+    // Read URL Search Parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const gasUrlParam = urlParams.get('gasUrl') || urlParams.get('appUrl') || urlParams.get('url');
+    const roleParam = urlParams.get('role') as any;
+
+    let updatedConfig = { ...g };
+    let hasUrlUpdate = false;
+
+    if (gasUrlParam && gasUrlParam.trim().startsWith('http')) {
+      updatedConfig.gasWebappUrl = gasUrlParam.trim();
+      hasUrlUpdate = true;
+    }
+
+    if (roleParam && ['ADMIN', 'EDITOR', 'VIEWER'].includes(roleParam)) {
+      updatedConfig.userRole = roleParam;
+      hasUrlUpdate = true;
+    }
+
+    if (hasUrlUpdate) {
+      setGoogleConfig(updatedConfig);
+      saveGoogleConfigToLocal(updatedConfig);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      setGoogleConfig(g);
+    }
+
     setProducts(p);
     setWarehouses(w);
     setTransactions(t);
-    setGoogleConfig(g);
   }, []);
 
   // Trigger Debounced Auto-Push (1.5s) when data is mutated
@@ -654,6 +680,7 @@ export default function App() {
         onOpenExportModal={handleOpenExportModal}
         onOpenExcelUpload={() => setIsExcelUploadOpen(true)}
         googleConfig={googleConfig}
+        onUpdateGoogleConfig={updateGoogleConfig}
         onQuickSync={handleSyncUp}
         isSyncing={isSyncing}
         onClearData={handleClearAllData}
@@ -677,6 +704,7 @@ export default function App() {
             warehouses={warehouses}
             transactions={transactions}
             categories={categories}
+            userRole={googleConfig.userRole}
             onOpenAddModal={() => {
               setEditingProduct(null);
               setIsProductModalOpen(true);
@@ -696,6 +724,7 @@ export default function App() {
             warehouses={warehouses}
             products={products}
             transactions={transactions}
+            userRole={googleConfig.userRole}
             onOpenAddModal={() => {
               setEditingWarehouse(null);
               setIsWarehouseModalOpen(true);
@@ -713,6 +742,7 @@ export default function App() {
             transactions={transactions}
             warehouses={warehouses}
             products={products}
+            userRole={googleConfig.userRole}
             onOpenImportModal={handleOpenImportModal}
             onOpenExportModal={handleOpenExportModal}
             onDeleteTransaction={handleDeleteTransaction}
