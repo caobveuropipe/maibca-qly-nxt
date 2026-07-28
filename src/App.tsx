@@ -5,6 +5,7 @@ import {
   Transaction,
   GoogleSyncConfig,
   TransactionType,
+  AppUser,
 } from './types';
 import {
   loadInitialState,
@@ -15,6 +16,10 @@ import {
   loadCategories,
   saveCategoriesToLocal,
   DEFAULT_CATEGORIES,
+  loadAppUsers,
+  saveAppUsersToLocal,
+  loadCurrentUser,
+  saveCurrentUserToLocal,
 } from './utils/storageUtils';
 
 import { Header, ActiveTab } from './components/Header';
@@ -30,6 +35,8 @@ import { WarehouseModal } from './components/WarehouseModal';
 import { ExcelUploadModal } from './components/ExcelUploadModal';
 import { VoucherDetailModal } from './components/VoucherDetailModal';
 import { CategoryManagerModal } from './components/CategoryManagerModal';
+import { UserManagementModal } from './components/UserManagementModal';
+import { AccountLoginModal } from './components/AccountLoginModal';
 
 export default function App() {
   // State
@@ -37,6 +44,9 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [users, setUsers] = useState<AppUser[]>(() => loadAppUsers());
+  const [currentUser, setCurrentUser] = useState<AppUser>(() => loadCurrentUser());
+
   const [googleConfig, setGoogleConfig] = useState<GoogleSyncConfig>({
     spreadsheetId: '',
     spreadsheetUrl: '',
@@ -67,7 +77,51 @@ export default function App() {
 
   const [isExcelUploadOpen, setIsExcelUploadOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [categories, setCategories] = useState<string[]>(() => loadCategories());
+
+  // User Handlers
+  const handleSaveUser = (userData: Omit<AppUser, 'id' | 'createdAt'>, editId?: string) => {
+    let updated: AppUser[];
+    if (editId) {
+      updated = users.map((u) => (u.id === editId ? { ...userData, id: u.id, createdAt: u.createdAt } : u));
+    } else {
+      const newUser: AppUser = {
+        ...userData,
+        id: `usr-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      updated = [...users, newUser];
+    }
+    setUsers(updated);
+    saveAppUsersToLocal(updated);
+
+    // If active user was updated, sync currentUser state
+    if (editId && currentUser.id === editId) {
+      const found = updated.find((u) => u.id === editId);
+      if (found) {
+        setCurrentUser(found);
+        saveCurrentUserToLocal(found);
+        updateGoogleConfig({ ...googleConfig, userRole: found.role });
+      }
+    }
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    if (users.length <= 1) return;
+    if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản nhân viên này không?')) {
+      const updated = users.filter((u) => u.id !== userId);
+      setUsers(updated);
+      saveAppUsersToLocal(updated);
+    }
+  };
+
+  const handleSelectUserLogin = (user: AppUser) => {
+    setCurrentUser(user);
+    saveCurrentUserToLocal(user);
+    updateGoogleConfig({ ...googleConfig, userRole: user.role });
+  };
 
   // Initial Load & Auto Connect via Link Query Parameter (?gasUrl=... or ?appUrl=...)
   useEffect(() => {
@@ -684,6 +738,9 @@ export default function App() {
         onQuickSync={handleSyncUp}
         isSyncing={isSyncing}
         onClearData={handleClearAllData}
+        currentUser={currentUser}
+        onOpenUserManagement={() => setIsUserManagementOpen(true)}
+        onOpenLoginModal={() => setIsLoginModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -834,6 +891,21 @@ export default function App() {
         onClose={() => setSelectedVoucherCode(null)}
         onDeleteVoucher={handleDeleteVoucher}
         onEditVoucher={handleEditVoucher}
+      />
+
+      <UserManagementModal
+        isOpen={isUserManagementOpen}
+        onClose={() => setIsUserManagementOpen(false)}
+        users={users}
+        onSaveUser={handleSaveUser}
+        onDeleteUser={handleDeleteUser}
+      />
+
+      <AccountLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        users={users}
+        onSelectUser={handleSelectUserLogin}
       />
     </div>
   );

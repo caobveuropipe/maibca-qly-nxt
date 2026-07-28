@@ -8,18 +8,15 @@
 
 ## 2026-07-28
 
-### feat: Phân Quyền 3 Cấp (ADMIN / EDITOR / VIEWER) & Tự Động Kết Nối Qua Link (0-Setup)
-- Bổ sung tính năng **Auto-Connect qua Link Chia Sẻ**: Thêm nút `"📋 Copy Link Chia Sẻ Cho Nhân Viên"` trong tab Cấu hình. Nhân viên mở đường link được gửi trên bất kỳ thiết bị/trình duyệt nào ➔ Ứng dụng **tự động kết nối ngầm với Google Sheet ngay lập tức (0-Setup)**, không cần dán URL hay cấu hình lại từ đầu.
-- Tích hợp **Hệ thống Phân Quyền 3 Vai Trò (RBAC)**:
-  - **👑 ADMIN (Quản Trị Viên):** Toàn quyền truy cập, cài đặt Google Sheet, quản lý mã PIN Admin và chức năng Xóa Dữ Liệu.
-  - **✏️ EDITOR (Nhân Viên Kho):** Quyền Tạo/Sửa phiếu nhập xuất, thêm sản phẩm. Ẩn hoàn toàn tab Cấu hình Sheet và nút Xóa Dữ Liệu.
-  - **👁️ VIEWER (Chỉ Xem Báo Cáo):** Chế độ Read-Only chỉ được xem Báo Cáo NXT & Thẻ Kho. Ẩn tất cả nút Thêm/Sửa/Xóa.
-- Thêm Badge Vai Trò & Modal Đổi Vai Trò bằng mã PIN Admin trên Header (`Header.tsx`).
-- Files: `src/types.ts`, `src/App.tsx`, `src/components/Header.tsx`, `src/components/GoogleSheetsSyncView.tsx`, `src/components/ProductsView.tsx`, `src/components/WarehousesView.tsx`, `src/components/TransactionsView.tsx`
+### feat: Giao Diện Bảng Quản Lý Danh Sách Phân Quyền Nhân Viên & Đăng Nhập PIN (`UserManagementModal`)
+- Xây dựng **Bảng Quản Lý Danh Sách Phân Quyền (`UserManagementModal.tsx`)**: Cho phép Admin tạo tài khoản nhân viên, cấp vai trò (ADMIN / EDITOR / VIEWER), cài mã PIN riêng cho từng nhân viên và tạm khóa/kích hoạt tài khoản.
+- Xây dựng **Modal Đăng Nhập Tài Khoản Nhân Viên (`AccountLoginModal.tsx`)**: Cho phép nhân viên chọn tên của mình từ danh sách và gõ Mã PIN cá nhân để tự động đăng nhập đúng vai trò được giao.
+- Hiển thị tên Nhân Viên đang đăng nhập trên thanh Header kèm nút mở Bảng Phân Quyền.
+- Files: `src/components/UserManagementModal.tsx`, `src/components/AccountLoginModal.tsx`, `src/components/Header.tsx`, `src/types.ts`, `src/utils/storageUtils.ts`, `src/App.tsx`
 
-### feat: Định dạng số hàng nghìn và thập phân Realtime khi nhập liệu (`FormattedNumberInput`)
-- Tạo mới component `FormattedNumberInput.tsx` tự động chèn **dấu chấm phân cách hàng nghìn (`.`)** và **dấu phẩy thập phân (`,`)** trực tiếp trong lúc người dùng gõ phím.
-- Files: `src/components/FormattedNumberInput.tsx`, `src/components/TransactionModal.tsx`, `src/components/ProductModal.tsx`
+### feat: Phân Quyền 3 Cấp (ADMIN / EDITOR / VIEWER) & Tự Động Kết Nối Qua Link (0-Setup)
+- Bổ sung tính năng **Auto-Connect qua Link Chia Sẻ**: Thêm nút `"📋 Copy Link Chia Sẻ Cho Nhân Viên"` trong tab Cấu hình.
+- Files: `src/components/GoogleSheetsSyncView.tsx`, `src/App.tsx`
 
 ---
 

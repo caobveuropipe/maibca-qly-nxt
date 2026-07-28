@@ -1,4 +1,4 @@
-import { Product, Warehouse, Transaction, StockSummaryItem, StockCardItem, GoogleSyncConfig } from '../types';
+import { Product, Warehouse, Transaction, StockSummaryItem, StockCardItem, GoogleSyncConfig, AppUser } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_TRANSACTIONS, INITIAL_WAREHOUSES } from '../data/mockData';
 import { formatVND, formatNum } from './pdfUtils';
 
@@ -9,8 +9,68 @@ const LOCAL_STORAGE_KEY_WAREHOUSES = 'nxt_inventory_warehouses_v1';
 const LOCAL_STORAGE_KEY_TRANSACTIONS = 'nxt_inventory_transactions_v1';
 const LOCAL_STORAGE_KEY_GOOGLE_CONFIG = 'nxt_inventory_google_config_v1';
 const LOCAL_STORAGE_KEY_CATEGORIES = 'nxt_inventory_categories_v1';
+const LOCAL_STORAGE_KEY_APP_USERS = 'nxt_inventory_app_users_v1';
+const LOCAL_STORAGE_KEY_CURRENT_USER = 'nxt_inventory_current_user_v1';
 
 export const DEFAULT_CATEGORIES = ['Thiết Bị', 'Vật Tư In Phụ Kiện', 'Bao Bì Đóng Gói', 'Linh Kiện', 'Khác'];
+
+export const DEFAULT_APP_USERS: AppUser[] = [
+  {
+    id: 'usr-admin-default',
+    name: 'Admin Quản Trị',
+    email: 'admin@system.local',
+    pin: '123456',
+    role: 'ADMIN',
+    status: 'ACTIVE',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'usr-editor-sample',
+    name: 'Nguyễn Văn A (Kho)',
+    email: 'kho@system.local',
+    pin: '111111',
+    role: 'EDITOR',
+    status: 'ACTIVE',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'usr-viewer-sample',
+    name: 'Sếp / Kế Toán',
+    email: 'ketoan@system.local',
+    pin: '222222',
+    role: 'VIEWER',
+    status: 'ACTIVE',
+    createdAt: new Date().toISOString(),
+  },
+];
+
+export const loadAppUsers = (): AppUser[] => {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_APP_USERS);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load app users:', e);
+  }
+  return DEFAULT_APP_USERS;
+};
+
+export const saveAppUsersToLocal = (users: AppUser[]) => {
+  localStorage.setItem(LOCAL_STORAGE_KEY_APP_USERS, JSON.stringify(users));
+};
+
+export const loadCurrentUser = (): AppUser => {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CURRENT_USER);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load current user:', e);
+  }
+  return DEFAULT_APP_USERS[0];
+};
+
+export const saveCurrentUserToLocal = (user: AppUser) => {
+  localStorage.setItem(LOCAL_STORAGE_KEY_CURRENT_USER, JSON.stringify(user));
+};
 
 export const loadCategories = (): string[] => {
   try {

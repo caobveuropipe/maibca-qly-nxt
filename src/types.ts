@@ -85,6 +85,16 @@ export interface StockCardItem {
 
 export type UserRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
+export interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  pin: string;
+  role: UserRole;
+  status: 'ACTIVE' | 'LOCKED';
+  createdAt: string;
+}
+
 export interface GoogleSyncConfig {
   spreadsheetId: string;
   spreadsheetUrl: string;

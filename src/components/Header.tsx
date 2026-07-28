@@ -20,7 +20,8 @@ import {
   X,
   Lock,
 } from 'lucide-react';
-import { GoogleSyncConfig, UserRole } from '../types';
+import { GoogleSyncConfig, UserRole, AppUser } from '../types';
+import { UserCog, LogIn } from 'lucide-react';
 
 export type ActiveTab = 'reports' | 'products' | 'warehouses' | 'transactions' | 'sheets';
 
@@ -35,6 +36,9 @@ interface HeaderProps {
   onQuickSync: () => void;
   isSyncing: boolean;
   onClearData?: () => void;
+  currentUser?: AppUser;
+  onOpenUserManagement?: () => void;
+  onOpenLoginModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -48,13 +52,16 @@ export const Header: React.FC<HeaderProps> = ({
   onQuickSync,
   isSyncing,
   onClearData,
+  currentUser,
+  onOpenUserManagement,
+  onOpenLoginModal,
 }) => {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [targetRole, setTargetRole] = useState<UserRole>('ADMIN');
   const [inputPin, setInputPin] = useState('');
   const [pinError, setPinError] = useState('');
 
-  const currentRole: UserRole = googleConfig.userRole || 'ADMIN';
+  const currentRole: UserRole = currentUser?.role || googleConfig.userRole || 'ADMIN';
   const isAdmin = currentRole === 'ADMIN';
   const isEditor = currentRole === 'EDITOR';
   const isViewer = currentRole === 'VIEWER';
@@ -129,6 +136,30 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action buttons (Scoped by Role) */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+            {/* User Login & Switcher */}
+            {onOpenLoginModal && (
+              <button
+                onClick={onOpenLoginModal}
+                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-md border border-slate-700 flex items-center gap-1.5 transition-colors"
+                title="Đổi tài khoản hoặc nhập PIN"
+              >
+                <LogIn className="w-3.5 h-3.5 text-blue-400" />
+                <span className="truncate max-w-[120px] sm:max-w-none">{currentUser ? currentUser.name : 'Đăng Nhập'}</span>
+              </button>
+            )}
+
+            {/* Admin User Management Button */}
+            {isAdmin && onOpenUserManagement && (
+              <button
+                onClick={onOpenUserManagement}
+                className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold rounded-md border border-amber-500/40 flex items-center gap-1.5 transition-colors"
+                title="Mở Bảng Quản Lý Phân Quyền Tất Cả Nhân Viên"
+              >
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">Bảng Phân Quyền</span>
+              </button>
+            )}
+
             {/* Quick Google Sync Button */}
             {isAdmin && googleConfig.spreadsheetId && (
               <button
