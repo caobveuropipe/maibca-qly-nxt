@@ -95,6 +95,18 @@ export interface AppUser {
   createdAt: string;
 }
 
+export type PartnerType = 'NHA_CUNG_CAP' | 'KHACH_HANG';
+
+export interface Partner {
+  id: string;
+  code: string;
+  name: string;
+  type: PartnerType;
+  phone?: string;
+  address?: string;
+  note?: string;
+}
+
 export interface GoogleSyncConfig {
   spreadsheetId: string;
   spreadsheetUrl: string;
@@ -110,3 +122,4 @@ export interface GoogleSyncConfig {
   userEmail?: string;
   userName?: string;
 }
+

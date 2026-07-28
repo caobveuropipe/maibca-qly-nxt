@@ -23,7 +23,10 @@ import {
 import { GoogleSyncConfig, UserRole, AppUser } from '../types';
 import { UserCog, LogIn, LogOut } from 'lucide-react';
 
-export type ActiveTab = 'reports' | 'products' | 'warehouses' | 'transactions' | 'sheets';
+import { Users } from 'lucide-react';
+
+export type ActiveTab = 'reports' | 'products' | 'warehouses' | 'transactions' | 'partners' | 'sheets';
+
 
 interface HeaderProps {
   activeTab: ActiveTab;
@@ -273,6 +276,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <ReceiptText className="w-4 h-4" /> Nhật ký NX
           </button>
+
+          <button
+            onClick={() => setActiveTab('partners')}
+            className={`py-2 px-3.5 rounded-lg flex items-center gap-2 whitespace-nowrap transition-colors ${
+              activeTab === 'partners'
+                ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <Users className="w-4 h-4" /> Quản Lý Đối Tác
+          </button>
+
 
           {isAdmin && (
             <button

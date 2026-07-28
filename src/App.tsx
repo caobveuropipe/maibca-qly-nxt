@@ -22,7 +22,11 @@ import {
   saveCurrentUserToLocal,
 } from './utils/storageUtils';
 
-import { Header, ActiveTab } from './components/Header';
+import { PartnersView } from './components/PartnersView';
+import { Partner } from './types';
+import { savePartnersToLocal } from './utils/storageUtils';
+import { Users } from 'lucide-react';
+
 import { ProductsView } from './components/ProductsView';
 import { WarehousesView } from './components/WarehousesView';
 import { TransactionsView } from './components/TransactionsView';
@@ -74,8 +78,10 @@ export default function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
   const [users, setUsers] = useState<AppUser[]>(() => loadAppUsers());
   const [currentUser, setCurrentUser] = useState<AppUser>(() => loadCurrentUser());
+
 
   const [googleConfig, setGoogleConfig] = useState<GoogleSyncConfig>({
     spreadsheetId: '',
@@ -207,7 +213,7 @@ export default function App() {
 
   // Initial Load & Auto Connect via Link Query Parameter (?gasUrl=... or ?appUrl=...)
   useEffect(() => {
-    const { products: p, warehouses: w, transactions: t, googleConfig: g } = loadInitialState();
+    const { products: p, warehouses: w, transactions: t, partners: pt, googleConfig: g } = loadInitialState();
 
     // Read URL Search Parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -238,7 +244,14 @@ export default function App() {
     setProducts(p);
     setWarehouses(w);
     setTransactions(t);
+    setPartners(pt);
   }, []);
+
+  const updatePartners = (newPartners: Partner[]) => {
+    setPartners(newPartners);
+    savePartnersToLocal(newPartners);
+  };
+
 
   // Trigger Debounced Auto-Push (1.5s) when data is mutated
   const triggerAutoPush = (
@@ -982,6 +995,28 @@ export default function App() {
               onEditVoucher={handleEditVoucher}
             />
           )}
+
+          {activeTab === 'partners' && (
+            <PartnersView
+              partners={partners}
+              isReadOnly={googleConfig.userRole === 'VIEWER'}
+              onAddPartner={(p) => {
+                const newPartner: Partner = {
+                  ...p,
+                  id: `part-${Date.now()}`,
+                };
+                updatePartners([...partners, newPartner]);
+              }}
+              onUpdatePartner={(updatedP) => {
+                const updated = partners.map((p) => (p.id === updatedP.id ? updatedP : p));
+                updatePartners(updated);
+              }}
+              onDeletePartner={(id) => {
+                updatePartners(partners.filter((p) => p.id !== id));
+              }}
+            />
+          )}
+
 
           {activeTab === 'sheets' && (
             <GoogleSheetsSyncView

@@ -172,18 +172,58 @@ function doPost(e) {
       });
       updateSheetData(ss, "NHAP_XUAT_KHO", txRows);
 
+      // Ghi DOI_TAC
+      var partners = data.partners || [];
+      var partRows = [
+        ["ID (Hệ Thống)", "Mã Đối Tác (*)", "Tên Đối Tác (*)", "Loại (NHA_CUNG_CAP/KHACH_HANG)", "Số Điện Thoại", "Địa Chỉ", "Ghi Chú"]
+      ];
+      partners.forEach(function(pt) {
+        partRows.push([
+          pt.id || "",
+          pt.code || "",
+          pt.name || "",
+          pt.type || "NHA_CUNG_CAP",
+          pt.phone || "",
+          pt.address || "",
+          pt.note || ""
+        ]);
+      });
+      updateSheetData(ss, "DOI_TAC", partRows);
+
       // Ghi Nhật Ký
-      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu");
+      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu, " + partners.length + " đối tác");
 
       return responseJSON({
         success: true,
-        message: "Đã đồng bộ " + products.length + " sản phẩm và " + transactions.length + " phiếu lên Google Sheet!"
+        message: "Đã đồng bộ " + products.length + " sản phẩm, " + transactions.length + " phiếu và " + partners.length + " đối tác lên Google Sheet!"
       });
     }
 
     // 3. Action: SYNC_DOWN (Tải dữ liệu từ Google Sheet về WebApp)
     if (action === "SYNC_DOWN") {
       ensureSheetsExist(ss);
+
+      // Đọc DOI_TAC
+      var partSheet = ss.getSheetByName("DOI_TAC");
+      var partData = partSheet ? partSheet.getDataRange().getValues() : [];
+      var partnersList = [];
+      
+      var ptHasId = partData.length > 0 && String(partData[0][0]).indexOf("ID") !== -1;
+      for (var pIdx = 1; pIdx < partData.length; pIdx++) {
+        var ptRow = partData[pIdx];
+        var ptCode = ptHasId ? String(ptRow[1] || "") : String(ptRow[0] || "");
+        if (!ptCode) continue;
+        partnersList.push({
+          id: ptHasId ? (String(ptRow[0]) || ("part-gas-" + pIdx)) : ("part-gas-" + pIdx),
+          code: ptCode,
+          name: String(ptHasId ? ptRow[2] : ptRow[1] || ""),
+          type: String(ptHasId ? ptRow[3] : ptRow[2] || "NHA_CUNG_CAP"),
+          phone: String(ptHasId ? ptRow[4] : ptRow[3] || ""),
+          address: String(ptHasId ? ptRow[5] : ptRow[4] || ""),
+          note: String(ptHasId ? ptRow[6] : ptRow[5] || "")
+        });
+      }
+
 
       // Đọc DANH_MUC_KHO (có cột ID)
       var whSheet = ss.getSheetByName("DANH_MUC_KHO");
@@ -291,16 +331,18 @@ function doPost(e) {
         }
       }
 
-      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu");
+      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu, " + partnersList.length + " đối tác");
 
       return responseJSON({
         success: true,
         data: {
           warehouses: warehousesList,
           products: productsList,
-          transactions: transactionsList
+          transactions: transactionsList,
+          partners: partnersList
         }
       });
+
     }
 
     return responseJSON({ success: false, error: "Hành động không hợp lệ: " + action });
@@ -317,12 +359,59 @@ function responseJSON(obj) {
 }
 
 function ensureSheetsExist(ss) {
-  var requiredSheets = ["DANH_MUC_KHO", "DANH_MUC_SAN_PHAM", "NHAP_XUAT_KHO", "NHAT_KY_HOAT_DONG"];
-  requiredSheets.forEach(function(name) {
-    if (!ss.getSheetByName(name)) {
-      ss.insertSheet(name);
-    }
-  });
+  if (!ss) {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  }
+  
+  // 1. Tạo sheet DANH_MUC_KHO
+  if (!ss.getSheetByName("DANH_MUC_KHO")) {
+    var sh = ss.insertSheet("DANH_MUC_KHO");
+    sh.appendRow(["ID (Hệ Thống)", "Mã Kho (*)", "Tên Kho (*)", "Địa Chỉ / Địa Điểm", "Người Quản Lý", "Số Điện Thoại", "Kho Mặc Định"]);
+    formatHeader(sh, 7);
+  }
+
+  // 2. Tạo sheet DANH_MUC_SAN_PHAM
+  if (!ss.getSheetByName("DANH_MUC_SAN_PHAM")) {
+    var sh = ss.insertSheet("DANH_MUC_SAN_PHAM");
+    sh.appendRow(["ID (Hệ Thống)", "Mã Sản Phẩm (*)", "Tên Sản Phẩm (*)", "Đơn Vị Tính (*)", "Nhóm Hàng", "Tồn Tối Thiểu", "Tồn Tối Đa", "Giá Nhập Tham Chiếu", "Giá Xuất Tham Chiếu", "Mô Tả"]);
+    formatHeader(sh, 10);
+  }
+
+  // 3. Tạo sheet NHAP_XUAT_KHO
+  if (!ss.getSheetByName("NHAP_XUAT_KHO")) {
+    var sh = ss.insertSheet("NHAP_XUAT_KHO");
+    sh.appendRow(["ID (Hệ Thống)", "Mã Phiếu", "Loại Phiếu (Nhập/Xuất)", "Ngày (YYYY-MM-DD)", "ID Kho", "Mã Kho", "Tên Kho", "ID SP", "Mã SP", "Tên Sản Phẩm", "Đơn Vị Tính", "Số Lượng", "Đơn Giá", "Thành Tiền", "Đối Tác / KH / NCC", "Ghi Chú"]);
+    formatHeader(sh, 16);
+  }
+
+  // 4. Tạo sheet NHAT_KY_HOAT_DONG
+  if (!ss.getSheetByName("NHAT_KY_HOAT_DONG")) {
+    var sh = ss.insertSheet("NHAT_KY_HOAT_DONG");
+    sh.appendRow(["Thời Gian", "Email / Người Dùng", "Thao Tác", "Trạng Thái"]);
+    formatHeader(sh, 4);
+  }
+
+  // 5. Tạo sheet PHAN_QUYEN (Mới bổ sung)
+  if (!ss.getSheetByName("PHAN_QUYEN")) {
+    var sh = ss.insertSheet("PHAN_QUYEN");
+    sh.appendRow(["ID (Hệ Thống)", "Email (*)", "Họ Và Tên", "Vai Trò (ADMIN/MANAGER/STAFF/VIEWER)", "Trạng Thái (ACTIVE/LOCKED)", "Kho Phụ Trách", "Ghi Chú"]);
+    formatHeader(sh, 7);
+  }
+
+  // 6. Tạo sheet DOI_TAC (Mới bổ sung)
+  if (!ss.getSheetByName("DOI_TAC")) {
+    var sh = ss.insertSheet("DOI_TAC");
+    sh.appendRow(["ID (Hệ Thống)", "Mã Đối Tác (*)", "Tên Đối Tác (*)", "Loại (NHA_CUNG_CAP/KHACH_HANG)", "Số Điện Thoại", "Địa Chỉ", "Ghi Chú"]);
+    formatHeader(sh, 7);
+  }
+}
+
+function formatHeader(sheet, numCols) {
+  var headerRange = sheet.getRange(1, 1, 1, numCols);
+  headerRange.setFontWeight("bold");
+  headerRange.setBackground("#1e293b");
+  headerRange.setFontColor("#ffffff");
+  sheet.setFrozenRows(1);
 }
 
 function updateSheetData(ss, sheetName, values) {
@@ -333,12 +422,7 @@ function updateSheetData(ss, sheetName, values) {
   sheet.clearContents();
   if (values && values.length > 0) {
     sheet.getRange(1, 1, values.length, values[0].length).setValues(values);
-    // Format header row
-    var headerRange = sheet.getRange(1, 1, 1, values[0].length);
-    headerRange.setFontWeight("bold");
-    headerRange.setBackground("#1e293b");
-    headerRange.setFontColor("#ffffff");
-    sheet.setFrozenRows(1);
+    formatHeader(sheet, values[0].length);
     sheet.autoResizeColumns(1, values[0].length);
   }
 }
@@ -350,11 +434,7 @@ function writeLog(ss, email, action, status) {
     
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(["Thời Gian", "Email / Người Dùng", "Thao Tác", "Trạng Thái"]);
-      var hdr = sheet.getRange(1, 1, 1, 4);
-      hdr.setFontWeight("bold");
-      hdr.setBackground("#1e293b");
-      hdr.setFontColor("#ffffff");
-      sheet.setFrozenRows(1);
+      formatHeader(sheet, 4);
     }
     sheet.appendRow([new Date().toLocaleString("vi-VN"), email, action, status]);
   } catch (e) {}
@@ -372,6 +452,16 @@ function formatDate(val) {
 }
 
 // --------------------------------------------------------
+// HÀM CHẠY TỰ ĐỘNG TẠO TẤT CẢ CÁC SHEET CHUẨN TRÊN GOOGLE SHEET
+// Chọn hàm setupAllSheets -> Bấm "Chạy (Run)" trên giao diện Apps Script
+// --------------------------------------------------------
+function setupAllSheets() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  ensureSheetsExist(ss);
+  Logger.log(" Tự động khởi tạo đầy đủ các sheet thành công!");
+}
+
+// --------------------------------------------------------
 // HÀM CHẠY THỬ ĐỂ CẤP QUYỀN GỬI EMAIL (AUTHORIZATION GRANT)
 // Hướng dẫn: Mở Apps Script -> Chọn hàm testSendMail -> Bấm "Chạy (Run)" -> Bấm "Duyệt quyền (Review permissions)" -> Bấm "Cho phép (Allow)"
 // --------------------------------------------------------
@@ -380,3 +470,4 @@ function testSendMail() {
   MailApp.sendEmail(userEmail, "[IMS PRO] Cấp Quyền Gửi OTP Thành Công", "Cấu hình cấp quyền gửi Email OTP cho Google Apps Script đã hoàn tất thành công!");
   Logger.log("Đã gửi mail cấp quyền thành công đến: " + userEmail);
 }
+

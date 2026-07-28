@@ -95,11 +95,51 @@ export const saveCategoriesToLocal = (categories: string[]) => {
   localStorage.setItem(LOCAL_STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
 };
 
+import { Partner } from '../types';
+
+const LOCAL_STORAGE_KEY_PARTNERS = 'nxt_inventory_partners_v1';
+
+export const INITIAL_PARTNERS: Partner[] = [
+  {
+    id: 'part-1',
+    code: 'NCC001',
+    name: 'Công ty TNHH Nhựa & Bao bì An Phát',
+    type: 'NHA_CUNG_CAP',
+    phone: '0243.888.999',
+    address: 'KCN Nam Sách, Hải Dương',
+    note: 'Nhà cung cấp hạt nhựa & bao bì chính'
+  },
+  {
+    id: 'part-2',
+    code: 'KH001',
+    name: 'Công ty CP Đầu tư & Phát triển Europipe',
+    type: 'KHACH_HANG',
+    phone: '0988.123.456',
+    address: 'Phổ Yên, Thái Nguyên',
+    note: 'Khách hàng chiến lược'
+  }
+];
+
+export const loadPartners = (): Partner[] => {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PARTNERS);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load partners:', e);
+  }
+  return INITIAL_PARTNERS;
+};
+
+export const savePartnersToLocal = (partners: Partner[]) => {
+  localStorage.setItem(LOCAL_STORAGE_KEY_PARTNERS, JSON.stringify(partners));
+};
+
 // Initial state loader
 export const loadInitialState = () => {
   let products: Product[] = INITIAL_PRODUCTS;
   let warehouses: Warehouse[] = INITIAL_WAREHOUSES;
   let transactions: Transaction[] = INITIAL_TRANSACTIONS;
+  let partners: Partner[] = loadPartners();
   let googleConfig: GoogleSyncConfig = {
     spreadsheetId: '',
     spreadsheetUrl: '',
@@ -137,8 +177,9 @@ export const loadInitialState = () => {
     console.error('Failed to load local storage state:', e);
   }
 
-  return { products, warehouses, transactions, googleConfig };
+  return { products, warehouses, transactions, partners, googleConfig };
 };
+
 
 // Save helpers
 export const saveProductsToLocal = (products: Product[]) => {
