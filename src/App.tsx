@@ -936,16 +936,19 @@ export default function App() {
               </button>
 
 
-              <button
-                onClick={() => setActiveTab('sheets')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'sheets'
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" /> Đồng Bộ Sheets
-              </button>
+              {(currentUser?.role === 'ADMIN' || googleConfig.userRole === 'ADMIN') && (
+                <button
+                  onClick={() => setActiveTab('sheets')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                    activeTab === 'sheets'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" /> Đồng Bộ Sheets
+                </button>
+              )}
+
             </nav>
           </div>
 
