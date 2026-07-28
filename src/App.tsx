@@ -38,11 +38,23 @@ import { CategoryManagerModal } from './components/CategoryManagerModal';
 import { UserManagementModal } from './components/UserManagementModal';
 import { AccountLoginModal } from './components/AccountLoginModal';
 import { LoginScreen } from './components/LoginScreen';
+import { Sidebar } from './components/Sidebar';
+import { PanelLeft, RefreshCw, Zap, Circle } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_AUTH_TOKEN = 'nxt_session_token_v1';
 const LOCAL_STORAGE_KEY_AUTH_USER = 'nxt_session_user_v1';
 
 export default function App() {
+  // Sidebar State (Persistent in LocalStorage)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('nxt_sidebar_collapsed_v1') === 'true';
+  });
+
+  const handleToggleSidebar = (collapsed: boolean) => {
+    setIsSidebarCollapsed(collapsed);
+    localStorage.setItem('nxt_sidebar_collapsed_v1', String(collapsed));
+  };
+
   // Session State (Long-term persistent)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return !!localStorage.getItem(LOCAL_STORAGE_KEY_AUTH_TOKEN);
@@ -806,105 +818,141 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex flex-col selection:bg-emerald-500 selection:text-white">
-      {/* Navigation Header */}
-      <Header
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex selection:bg-emerald-500 selection:text-white">
+      {/* Collapsible Left Sidebar */}
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={handleToggleSidebar}
+        currentUser={currentUser}
+        googleConfig={googleConfig}
         onOpenImportModal={handleOpenImportModal}
         onOpenExportModal={handleOpenExportModal}
         onOpenExcelUpload={() => setIsExcelUploadOpen(true)}
-        googleConfig={googleConfig}
-        onUpdateGoogleConfig={updateGoogleConfig}
+        onOpenUserManagement={() => setIsUserManagementOpen(true)}
         onQuickSync={handleSyncUp}
         isSyncing={isSyncing}
         onClearData={handleClearAllData}
-        currentUser={currentUser}
-        onOpenUserManagement={() => setIsUserManagementOpen(true)}
-        onOpenLoginModal={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        {activeTab === 'reports' && (
-          <ReportsView
-            products={products}
-            warehouses={warehouses}
-            transactions={transactions}
-            selectedProductIdForCard={selectedProductIdForCard}
-            onSelectVoucher={(code) => setSelectedVoucherCode(code)}
-          />
-        )}
+      {/* Main Workspace Area (Maximized Width & Space for Tables) */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* Ultra-lightweight TopBar (44px) */}
+        <header className="h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0 z-20">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleToggleSidebar(!isSidebarCollapsed)}
+              className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+              title={isSidebarCollapsed ? 'Mở rộng Sidebar' : 'Thu gọn Sidebar (Ẩn để xem bảng rộng)'}
+            >
+              <PanelLeft className="w-4 h-4" />
+            </button>
+            <span className="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider">
+              {activeTab === 'reports' && 'Báo Cáo Nhập Xuất Tồn & Thẻ Kho'}
+              {activeTab === 'products' && 'Danh Mục Sản Phẩm & Định Mức Tồn'}
+              {activeTab === 'warehouses' && 'Quản Lý Danh Sách Kho Hàng'}
+              {activeTab === 'transactions' && 'Nhật Ký Phiếu Nhập Xuất Kho'}
+              {activeTab === 'sheets' && 'Đồng Bộ & Kết Nối Google Sheets'}
+            </span>
+          </div>
 
-        {activeTab === 'products' && (
-          <ProductsView
-            products={products}
-            warehouses={warehouses}
-            transactions={transactions}
-            categories={categories}
-            userRole={googleConfig.userRole}
-            onOpenAddModal={() => {
-              setEditingProduct(null);
-              setIsProductModalOpen(true);
-            }}
-            onOpenEditModal={(p) => {
-              setEditingProduct(p);
-              setIsProductModalOpen(true);
-            }}
-            onDeleteProduct={handleDeleteProduct}
-            onViewStockCard={handleViewStockCard}
-            onManageCategories={() => setIsCategoryManagerOpen(true)}
-          />
-        )}
+          <div className="flex items-center gap-3 text-xs">
+            {googleConfig.autoSync && (
+              <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-medium text-[11px]">
+                <Zap className="w-3 h-3 text-emerald-500" /> Auto-Sync Realtime (1.5s)
+              </span>
+            )}
+            {currentUser && (
+              <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">
+                {currentUser.email}
+              </span>
+            )}
+          </div>
+        </header>
 
-        {activeTab === 'warehouses' && (
-          <WarehousesView
-            warehouses={warehouses}
-            products={products}
-            transactions={transactions}
-            userRole={googleConfig.userRole}
-            onOpenAddModal={() => {
-              setEditingWarehouse(null);
-              setIsWarehouseModalOpen(true);
-            }}
-            onOpenEditModal={(wh) => {
-              setEditingWarehouse(wh);
-              setIsWarehouseModalOpen(true);
-            }}
-            onDeleteWarehouse={handleDeleteWarehouse}
-          />
-        )}
+        {/* Maximized Data Tables Workspace */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-full overflow-x-hidden">
+          {activeTab === 'reports' && (
+            <ReportsView
+              products={products}
+              warehouses={warehouses}
+              transactions={transactions}
+              selectedProductIdForCard={selectedProductIdForCard}
+              onSelectVoucher={(code) => setSelectedVoucherCode(code)}
+            />
+          )}
 
-        {activeTab === 'transactions' && (
-          <TransactionsView
-            transactions={transactions}
-            warehouses={warehouses}
-            products={products}
-            userRole={googleConfig.userRole}
-            onOpenImportModal={handleOpenImportModal}
-            onOpenExportModal={handleOpenExportModal}
-            onDeleteTransaction={handleDeleteTransaction}
-            onSelectVoucher={(code) => setSelectedVoucherCode(code)}
-            onEditVoucher={handleEditVoucher}
-          />
-        )}
+          {activeTab === 'products' && (
+            <ProductsView
+              products={products}
+              warehouses={warehouses}
+              transactions={transactions}
+              categories={categories}
+              userRole={googleConfig.userRole}
+              onOpenAddModal={() => {
+                setEditingProduct(null);
+                setIsProductModalOpen(true);
+              }}
+              onOpenEditModal={(p) => {
+                setEditingProduct(p);
+                setIsProductModalOpen(true);
+              }}
+              onDeleteProduct={handleDeleteProduct}
+              onViewStockCard={handleViewStockCard}
+              onManageCategories={() => setIsCategoryManagerOpen(true)}
+            />
+          )}
 
-        {activeTab === 'sheets' && (
-          <GoogleSheetsSyncView
-            config={googleConfig}
-            onUpdateConfig={updateGoogleConfig}
-            products={products}
-            warehouses={warehouses}
-            transactions={transactions}
-            onSyncUp={handleSyncUp}
-            onSyncDown={handleSyncDown}
-            onCreateNewSheet={handleCreateNewGoogleSheet}
-            isSyncing={isSyncing}
-            syncMessage={syncMessage}
-          />
-        )}
-      </main>
+          {activeTab === 'warehouses' && (
+            <WarehousesView
+              warehouses={warehouses}
+              products={products}
+              transactions={transactions}
+              userRole={googleConfig.userRole}
+              onOpenAddModal={() => {
+                setEditingWarehouse(null);
+                setIsWarehouseModalOpen(true);
+              }}
+              onOpenEditModal={(wh) => {
+                setEditingWarehouse(wh);
+                setIsWarehouseModalOpen(true);
+              }}
+              onDeleteWarehouse={handleDeleteWarehouse}
+            />
+          )}
+
+          {activeTab === 'transactions' && (
+            <TransactionsView
+              transactions={transactions}
+              warehouses={warehouses}
+              products={products}
+              userRole={googleConfig.userRole}
+              onOpenImportModal={handleOpenImportModal}
+              onOpenExportModal={handleOpenExportModal}
+              onDeleteTransaction={handleDeleteTransaction}
+              onSelectVoucher={(code) => setSelectedVoucherCode(code)}
+              onEditVoucher={handleEditVoucher}
+            />
+          )}
+
+          {activeTab === 'sheets' && (
+            <GoogleSheetsSyncView
+              config={googleConfig}
+              onUpdateConfig={updateGoogleConfig}
+              products={products}
+              warehouses={warehouses}
+              transactions={transactions}
+              onSyncUp={handleSyncUp}
+              onSyncDown={handleSyncDown}
+              onCreateNewSheet={handleCreateNewGoogleSheet}
+              isSyncing={isSyncing}
+              syncMessage={syncMessage}
+            />
+          )}
+        </main>
+      </div>
 
       {/* Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-slate-500 dark:text-slate-400">

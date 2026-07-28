@@ -8,12 +8,15 @@
 
 ## 2026-07-28
 
-### feat: Hệ Thống Phân Quyền Trực Tiếp Theo Email Đăng Nhập (`Email-Based Role Engine`)
-- **Tự động đối soát vai trò theo Email**: Khi người dùng/nhân viên đăng nhập bằng Email qua OTP, ứng dụng tự động kiểm tra Email trong Bảng Danh Sách Phân Quyền để cấp đúng quyền (`ADMIN`, `EDITOR`, `VIEWER`).
-- **Tùy chỉnh Bảng Phân Quyền Theo Email (`UserManagementModal.tsx`)**: Admin dễ dàng thêm Email nhân viên mới, gán vai trò (`ADMIN` / `EDITOR` / `VIEWER`) và bật/tắt trạng thái truy cập của từng Email.
-- Hiển thị địa chỉ Email đang đăng nhập nổi bật trên thanh Header (VD: `caobv.europipe@gmail.com (ADMIN)`).
-- Email chính `caobv.europipe@gmail.com` mặc định luôn sở hữu toàn quyền `ADMIN`.
-- Files: `src/components/UserManagementModal.tsx`, `src/components/Header.tsx`, `src/App.tsx`, `src/utils/storageUtils.ts`
+### feat: Giao Diện Sidebar Thu Gọn / Ẩn Nhanh Tối Ưu Diện Tích Hiển Thị Bảng (`Sidebar.tsx`)
+- **Chuyển đổi toàn bộ Header dầy cũ sang Sidebar dọc bên trái**:
+  - Tích hợp Branding Logo, Email Người Dùng, Badge Vai Trò, Menu Chuyển Tab (Báo Cáo, Sản Phẩm, Kho Hàng, Nhật Ký NX, Đồng Bộ Sheets).
+  - Tích hợp các Nút Thao Tác Nhanh (`+ Phiếu Nhập`, `+ Phiếu Xuất`, `Nhập Excel`, `Bảng Phân Quyền`, `Đồng Bộ Sheets`, `Xóa Dữ Liệu`).
+- **Cơ chế Thu Gọn / Mở Rộng 1-Click (Collapsible State Engine)**:
+  - Bấm nút thu gọn ➔ Sidebar co về 64px icon ➔ Tăng diện tích hiển thị cho các bảng dữ liệu lên 95%+.
+  - Lưu trạng thái thu gọn vào `localStorage` (`nxt_sidebar_collapsed_v1`) để giữ nguyên bố cục khi F5 làm mới trang.
+- Thay thế Header ngang cũ bằng **Mini TopBar siêu nhẹ (44px)**.
+- Files: `src/components/Sidebar.tsx`, `src/App.tsx`
 
 ---
 
