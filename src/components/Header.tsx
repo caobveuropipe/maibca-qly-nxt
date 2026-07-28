@@ -138,22 +138,21 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action buttons (Scoped by Role) */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            {/* User Login & Switcher */}
-            {onOpenLoginModal && (
-              <button
-                onClick={onOpenLoginModal}
-                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-md border border-slate-700 flex items-center gap-1.5 transition-colors"
-                title="Đổi tài khoản hoặc nhập PIN"
+            {/* Logged in Email Display */}
+            {currentUser && (
+              <div
+                className="px-3 py-1.5 bg-slate-800 text-slate-200 text-xs font-semibold rounded-md border border-slate-700 flex items-center gap-1.5 font-mono"
+                title={`Đang đăng nhập bằng Email: ${currentUser.email}`}
               >
-                <LogIn className="w-3.5 h-3.5 text-blue-400" />
-                <span className="truncate max-w-[120px] sm:max-w-none">{currentUser ? currentUser.name : 'Đăng Nhập'}</span>
-              </button>
+                <UserCog className="w-3.5 h-3.5 text-blue-400" />
+                <span className="truncate max-w-[160px] sm:max-w-[220px] text-blue-300 font-bold">{currentUser.email}</span>
+              </div>
             )}
 
             {onLogout && (
               <button
                 onClick={onLogout}
-                className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/60 text-xs font-semibold rounded-md flex items-center gap-1 transition-colors"
+                className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/60 text-xs font-semibold rounded-md flex items-center gap-1 transition-colors cursor-pointer"
                 title="Đăng xuất khỏi thiết bị này"
               >
                 <LogOut className="w-3.5 h-3.5" />

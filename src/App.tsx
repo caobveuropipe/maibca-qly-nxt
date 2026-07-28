@@ -141,17 +141,46 @@ export default function App() {
     updateGoogleConfig({ ...googleConfig, userRole: user.role });
   };
 
-  // Login Success Handler (Saves session token long-term)
+  // Login Success Handler (Matches Email Permission Role)
   const handleLoginSuccess = (user: { email: string; name: string; role: any; token: string }) => {
+    const userEmail = (user.email || '').trim().toLowerCase();
+
+    // Check if email exists in AppUsers list
+    const foundUser = users.find((u) => u.email.trim().toLowerCase() === userEmail);
+
+    let assignedRole: any = 'EDITOR';
+    let displayName = user.name || userEmail.split('@')[0];
+
+    if (userEmail === 'caobv.europipe@gmail.com' || userEmail === 'admin@system.local') {
+      assignedRole = 'ADMIN';
+    } else if (foundUser) {
+      assignedRole = foundUser.role;
+      displayName = foundUser.name;
+    } else {
+      assignedRole = user.role || 'EDITOR';
+    }
+
+    const updatedUserObj: AppUser = {
+      id: foundUser ? foundUser.id : `usr-${Date.now()}`,
+      email: userEmail,
+      name: displayName,
+      pin: '123456',
+      role: assignedRole,
+      status: 'ACTIVE',
+      createdAt: new Date().toISOString(),
+    };
+
     localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_TOKEN, user.token);
-    localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_USER, JSON.stringify(user));
+    localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_USER, JSON.stringify(updatedUserObj));
     setIsAuthenticated(true);
-    setSessionUser(user);
+    setSessionUser(updatedUserObj);
+    setCurrentUser(updatedUserObj);
+    saveCurrentUserToLocal(updatedUserObj);
 
     // Sync role with googleConfig
     updateGoogleConfig({
       ...googleConfig,
-      userRole: user.role || 'ADMIN',
+      userRole: assignedRole,
     });
   };
 

@@ -16,6 +16,15 @@ export const DEFAULT_CATEGORIES = ['Thiết Bị', 'Vật Tư In Phụ Kiện', 
 
 export const DEFAULT_APP_USERS: AppUser[] = [
   {
+    id: 'usr-admin-primary',
+    name: 'Cao Văn B (Chủ Quản Trị)',
+    email: 'caobv.europipe@gmail.com',
+    pin: '123456',
+    role: 'ADMIN',
+    status: 'ACTIVE',
+    createdAt: new Date().toISOString(),
+  },
+  {
     id: 'usr-admin-default',
     name: 'Admin Quản Trị',
     email: 'admin@system.local',
@@ -26,8 +35,8 @@ export const DEFAULT_APP_USERS: AppUser[] = [
   },
   {
     id: 'usr-editor-sample',
-    name: 'Nguyễn Văn A (Kho)',
-    email: 'kho@system.local',
+    name: 'Nguyễn Văn A (Nhân Viên Kho)',
+    email: 'nvkhoa@company.com',
     pin: '111111',
     role: 'EDITOR',
     status: 'ACTIVE',
@@ -35,8 +44,8 @@ export const DEFAULT_APP_USERS: AppUser[] = [
   },
   {
     id: 'usr-viewer-sample',
-    name: 'Sếp / Kế Toán',
-    email: 'ketoan@system.local',
+    name: 'Trần Thị B (Kế Toán / Xem Báo Cáo)',
+    email: 'ketoanb@company.com',
     pin: '222222',
     role: 'VIEWER',
     status: 'ACTIVE',

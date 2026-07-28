@@ -8,17 +8,12 @@
 
 ## 2026-07-28
 
-### feat: Đăng Nhập Bằng OTP Qua Email 0đ Chi Phí & Màn Hình Khóa Đăng Nhập Dài Hạn (`LoginScreen`)
-- Xây dựng **Màn Hình Đăng Nhập OTP Bắt Buộc (`LoginScreen.tsx`)**: Chặn 100% người dùng chưa đăng nhập tiếp cận giao diện hệ thống.
-- **Tích hợp Email OTP Engine 0đ Chi Phí (Google Apps Script)**:
-  - Gửi mã OTP 6 số ngẫu nhiên trực tiếp đến hộp thư Email người dùng qua API `MailApp.sendEmail` miễn phí của Google.
-  - Hỗ trợ xác minh OTP và **Lưu phiên đăng nhập dài hạn** vào `localStorage` (`nxt_session_token_v1`) để giữ đăng nhập qua các lần đóng/mở trình duyệt.
-- Bổ sung nút **"Đăng Xuất"** và Fallback Đăng nhập nhanh bằng PIN Admin khi không có kết nối internet.
-- Files: `src/components/LoginScreen.tsx`, `google_apps_script.gs`, `src/App.tsx`, `src/components/Header.tsx`
-
-### feat: Giao Diện Bảng Quản Lý Danh Sách Phân Quyền Nhân Viên (`UserManagementModal`)
-- Xây dựng **Bảng Quản Lý Danh Sách Phân Quyền (`UserManagementModal.tsx`)**: Cho phép Admin tạo tài khoản nhân viên, cấp vai trò (ADMIN / EDITOR / VIEWER), cài mã PIN riêng cho từng nhân viên.
-- Files: `src/components/UserManagementModal.tsx`, `src/components/AccountLoginModal.tsx`, `src/components/Header.tsx`
+### feat: Hệ Thống Phân Quyền Trực Tiếp Theo Email Đăng Nhập (`Email-Based Role Engine`)
+- **Tự động đối soát vai trò theo Email**: Khi người dùng/nhân viên đăng nhập bằng Email qua OTP, ứng dụng tự động kiểm tra Email trong Bảng Danh Sách Phân Quyền để cấp đúng quyền (`ADMIN`, `EDITOR`, `VIEWER`).
+- **Tùy chỉnh Bảng Phân Quyền Theo Email (`UserManagementModal.tsx`)**: Admin dễ dàng thêm Email nhân viên mới, gán vai trò (`ADMIN` / `EDITOR` / `VIEWER`) và bật/tắt trạng thái truy cập của từng Email.
+- Hiển thị địa chỉ Email đang đăng nhập nổi bật trên thanh Header (VD: `caobv.europipe@gmail.com (ADMIN)`).
+- Email chính `caobv.europipe@gmail.com` mặc định luôn sở hữu toàn quyền `ADMIN`.
+- Files: `src/components/UserManagementModal.tsx`, `src/components/Header.tsx`, `src/App.tsx`, `src/utils/storageUtils.ts`
 
 ---
 
