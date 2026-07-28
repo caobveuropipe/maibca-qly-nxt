@@ -39,7 +39,7 @@ import { UserManagementModal } from './components/UserManagementModal';
 import { AccountLoginModal } from './components/AccountLoginModal';
 import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
-import { PanelLeft, RefreshCw, Zap, Circle } from 'lucide-react';
+import { PanelLeft, RefreshCw, Zap, Circle, PieChart, Package, Warehouse as WarehouseIcon, ReceiptText, FileSpreadsheet } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY_AUTH_TOKEN = 'nxt_session_token_v1';
 const LOCAL_STORAGE_KEY_AUTH_USER = 'nxt_session_user_v1';
@@ -839,34 +839,80 @@ export default function App() {
 
       {/* Main Workspace Area (Maximized Width & Space for Tables) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {/* Ultra-lightweight TopBar (44px) */}
-        <header className="h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0 z-20">
-          <div className="flex items-center gap-3">
+        {/* Modern Header Bar with Horizontal Navigation Tabs */}
+        <header className="h-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 flex items-center justify-between shrink-0 z-20 overflow-x-auto">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => handleToggleSidebar(!isSidebarCollapsed)}
-              className="p-1 rounded text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
               title={isSidebarCollapsed ? 'Mở rộng Sidebar' : 'Thu gọn Sidebar (Ẩn để xem bảng rộng)'}
             >
               <PanelLeft className="w-4 h-4" />
             </button>
-            <span className="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider">
-              {activeTab === 'reports' && 'Báo Cáo Nhập Xuất Tồn & Thẻ Kho'}
-              {activeTab === 'products' && 'Danh Mục Sản Phẩm & Định Mức Tồn'}
-              {activeTab === 'warehouses' && 'Quản Lý Danh Sách Kho Hàng'}
-              {activeTab === 'transactions' && 'Nhật Ký Phiếu Nhập Xuất Kho'}
-              {activeTab === 'sheets' && 'Đồng Bộ & Kết Nối Google Sheets'}
-            </span>
+
+            {/* Top Navigation Tabs */}
+            <nav className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1 no-scrollbar">
+              <button
+                onClick={() => setActiveTab('reports')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'reports'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <PieChart className="w-3.5 h-3.5" /> Báo Cáo NXT
+              </button>
+
+              <button
+                onClick={() => setActiveTab('products')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'products'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" /> Sản Phẩm
+              </button>
+
+              <button
+                onClick={() => setActiveTab('warehouses')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'warehouses'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <WarehouseIcon className="w-3.5 h-3.5" /> Danh Sách Kho
+              </button>
+
+              <button
+                onClick={() => setActiveTab('transactions')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'transactions'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <ReceiptText className="w-3.5 h-3.5" /> Nhật Ký NX
+              </button>
+
+              <button
+                onClick={() => setActiveTab('sheets')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'sheets'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" /> Đồng Bộ Sheets
+              </button>
+            </nav>
           </div>
 
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-3 text-xs shrink-0 ml-2">
             {googleConfig.autoSync && (
-              <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-medium text-[11px]">
-                <Zap className="w-3 h-3 text-emerald-500" /> Auto-Sync Realtime (1.5s)
-              </span>
-            )}
-            {currentUser && (
-              <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">
-                {currentUser.email}
+              <span className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-[11px]">
+                <Zap className="w-3 h-3 text-emerald-500" /> Auto-Sync Realtime
               </span>
             )}
           </div>
