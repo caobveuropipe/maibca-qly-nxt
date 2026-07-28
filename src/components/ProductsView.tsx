@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Product, Warehouse, Transaction, UserRole } from '../types';
 import { formatVND, formatNum, calculateStockSummary } from '../utils/storageUtils';
 import { Search, Plus, Edit3, Trash2, Package, Filter, FileText, Tag } from 'lucide-react';

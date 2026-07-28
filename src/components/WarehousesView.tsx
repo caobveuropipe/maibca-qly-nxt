@@ -1,3 +1,4 @@
+import React from 'react';
 import { Warehouse, Product, Transaction, UserRole } from '../types';
 import { calculateStockSummary, formatNum } from '../utils/storageUtils';
 import { Warehouse as WarehouseIcon, Plus, MapPin, User, Phone, Edit3, Trash2, Boxes } from 'lucide-react';
