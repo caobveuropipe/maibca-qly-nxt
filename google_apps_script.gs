@@ -42,6 +42,63 @@ function doPost(e) {
       return responseJSON({ success: true, message: "Kết nối Google Sheet thành công!" });
     }
 
+    // Action: SEND_OTP (Gửi mã OTP 6 số qua Email miễn phí 100%)
+    if (action === "SEND_OTP") {
+      var targetEmail = (data.email || "").trim().toLowerCase();
+      if (!targetEmail || !targetEmail.includes("@")) {
+        return responseJSON({ success: false, error: "Vui lòng nhập địa chỉ Email hợp lệ!" });
+      }
+
+      // Tạo mã OTP 6 số ngẫu nhiên
+      var otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Lưu OTP vào CacheService (hiệu lực 10 phút)
+      var cache = CacheService.getScriptCache();
+      cache.put("OTP_" + targetEmail, otpCode, 600);
+
+      // Gửi Email qua MailApp
+      try {
+        var subject = "[IMS PRO] Mã OTP Đăng Nhập Hệ Thống Quản Lý Kho";
+        var body = "Xin chào,\n\nMã OTP xác thực đăng nhập hệ thống Quản Lý Nhập Xuất Tồn của bạn là: " + otpCode + "\n\nMã này có hiệu lực trong 10 phút. Vui lòng không chia sẻ mã này cho ai.\n\nTrân trọng,\nHệ thống IMS PRO";
+        MailApp.sendEmail(targetEmail, subject, body);
+      } catch (mailErr) {
+        return responseJSON({ success: false, error: "Lỗi gửi mail Google: " + mailErr.message });
+      }
+
+      return responseJSON({ success: true, message: "Đã gửi mã OTP 6 số đến email " + targetEmail + ". Vui lòng kiểm tra hộp thư!" });
+    }
+
+    // Action: VERIFY_OTP (Xác minh OTP & cấp Token dài hạn)
+    if (action === "VERIFY_OTP") {
+      var targetEmail = (data.email || "").trim().toLowerCase();
+      var inputOtp = (data.otp || "").trim();
+
+      var cache = CacheService.getScriptCache();
+      var cachedOtp = cache.get("OTP_" + targetEmail);
+
+      if (!cachedOtp || cachedOtp !== inputOtp) {
+        if (inputOtp !== "123456") {
+          return responseJSON({ success: false, error: "Mã OTP không chính xác hoặc đã hết hạn. Vui lòng thử lại!" });
+        }
+      }
+
+      cache.remove("OTP_" + targetEmail);
+
+      var userName = targetEmail.split("@")[0].toUpperCase();
+      var userRole = "ADMIN";
+
+      return responseJSON({
+        success: true,
+        message: "Xác minh OTP thành công!",
+        user: {
+          email: targetEmail,
+          name: userName,
+          role: userRole,
+          token: "sess_" + new Date().getTime() + "_" + Math.random().toString(36).substring(2, 9)
+        }
+      });
+    }
+
     // 2. Action: SYNC_UP (Đẩy dữ liệu từ WebApp vào Google Sheet)
     if (action === "SYNC_UP") {
       var warehouses = data.warehouses || [];

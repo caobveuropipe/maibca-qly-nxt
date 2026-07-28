@@ -37,8 +37,26 @@ import { VoucherDetailModal } from './components/VoucherDetailModal';
 import { CategoryManagerModal } from './components/CategoryManagerModal';
 import { UserManagementModal } from './components/UserManagementModal';
 import { AccountLoginModal } from './components/AccountLoginModal';
+import { LoginScreen } from './components/LoginScreen';
+
+const LOCAL_STORAGE_KEY_AUTH_TOKEN = 'nxt_session_token_v1';
+const LOCAL_STORAGE_KEY_AUTH_USER = 'nxt_session_user_v1';
 
 export default function App() {
+  // Session State (Long-term persistent)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return !!localStorage.getItem(LOCAL_STORAGE_KEY_AUTH_TOKEN);
+  });
+  const [sessionUser, setSessionUser] = useState<any>(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY_AUTH_USER);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse auth user:', e);
+    }
+    return null;
+  });
+
   // State
   const [activeTab, setActiveTab] = useState<ActiveTab>('reports');
   const [products, setProducts] = useState<Product[]>([]);
@@ -121,6 +139,29 @@ export default function App() {
     setCurrentUser(user);
     saveCurrentUserToLocal(user);
     updateGoogleConfig({ ...googleConfig, userRole: user.role });
+  };
+
+  // Login Success Handler (Saves session token long-term)
+  const handleLoginSuccess = (user: { email: string; name: string; role: any; token: string }) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_TOKEN, user.token);
+    localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_USER, JSON.stringify(user));
+    setIsAuthenticated(true);
+    setSessionUser(user);
+
+    // Sync role with googleConfig
+    updateGoogleConfig({
+      ...googleConfig,
+      userRole: user.role || 'ADMIN',
+    });
+  };
+
+  const handleLogout = () => {
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng không?')) {
+      localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_TOKEN);
+      localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_USER);
+      setIsAuthenticated(false);
+      setSessionUser(null);
+    }
   };
 
   // Initial Load & Auto Connect via Link Query Parameter (?gasUrl=... or ?appUrl=...)
@@ -724,6 +765,17 @@ export default function App() {
     }
   };
 
+  // If not authenticated, render full-screen mandatory Email OTP Login Screen
+  if (!isAuthenticated) {
+    return (
+      <LoginScreen
+        gasWebappUrl={googleConfig.gasWebappUrl}
+        onLoginSuccess={handleLoginSuccess}
+        adminPin={googleConfig.adminPin}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex flex-col selection:bg-emerald-500 selection:text-white">
       {/* Navigation Header */}
@@ -741,6 +793,7 @@ export default function App() {
         currentUser={currentUser}
         onOpenUserManagement={() => setIsUserManagementOpen(true)}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}

@@ -21,7 +21,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { GoogleSyncConfig, UserRole, AppUser } from '../types';
-import { UserCog, LogIn } from 'lucide-react';
+import { UserCog, LogIn, LogOut } from 'lucide-react';
 
 export type ActiveTab = 'reports' | 'products' | 'warehouses' | 'transactions' | 'sheets';
 
@@ -39,6 +39,7 @@ interface HeaderProps {
   currentUser?: AppUser;
   onOpenUserManagement?: () => void;
   onOpenLoginModal?: () => void;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -55,6 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onOpenUserManagement,
   onOpenLoginModal,
+  onLogout,
 }) => {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [targetRole, setTargetRole] = useState<UserRole>('ADMIN');
@@ -145,6 +147,17 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <LogIn className="w-3.5 h-3.5 text-blue-400" />
                 <span className="truncate max-w-[120px] sm:max-w-none">{currentUser ? currentUser.name : 'Đăng Nhập'}</span>
+              </button>
+            )}
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="px-2.5 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/60 text-xs font-semibold rounded-md flex items-center gap-1 transition-colors"
+                title="Đăng xuất khỏi thiết bị này"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Đăng Xuất</span>
               </button>
             )}
 
