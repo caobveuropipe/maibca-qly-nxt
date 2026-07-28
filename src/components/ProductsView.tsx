@@ -165,11 +165,11 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
                             : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
                         }`}
                       >
-                        {formatNum(currentQty)} {p.unit}
+                        {formatNum(currentQty)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right text-slate-500">
-                      Min: {p.minStock} {p.unit}
+                      Min: {formatNum(p.minStock)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">

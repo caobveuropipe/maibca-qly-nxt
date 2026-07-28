@@ -357,7 +357,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                         {formatNum(item.exportQty)}
                       </td>
                       <td className="p-3 text-right font-bold text-slate-900 dark:text-white">
-                        {formatNum(item.endingQty)} {item.unit}
+                        {formatNum(item.endingQty)}
                       </td>
                     </tr>
                   ))
@@ -469,7 +469,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                           {item.exportQty ? formatNum(item.exportQty) : '-'}
                         </td>
                         <td className="p-3 text-right font-bold text-slate-900 dark:text-white">
-                          {formatNum(item.runningBalance)} {stockCardProduct.unit}
+                          {formatNum(item.runningBalance)}
                         </td>
                       </tr>
                     ))}
