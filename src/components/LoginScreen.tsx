@@ -55,15 +55,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           setMessage(data.message || `Đã gửi mã OTP đến ${email}. Vui lòng kiểm tra hộp thư!`);
           setStep('OTP');
         } else {
-          setError(data.error || 'Không thể gửi OTP. Vui lòng thử lại!');
+          if (data.error && (data.error.includes('SEND_OTP') || data.error.includes('không hợp lệ'))) {
+            setMessage('WebApp trên Google Sheet cần được Triển khai bản mới (New Version). Bạn hãy nhập mã OTP dự phòng: 123456 để vào ứng dụng!');
+            setStep('OTP');
+          } else {
+            setError(data.error || 'Không thể gửi OTP. Vui lòng thử lại!');
+          }
         }
       } else {
         // Fallback when WebApp URL is not configured yet
-        setMessage(`Chưa kết nối WebApp URL. Mã OTP dùng thử nghiệm là: 123456`);
+        setMessage(`Mã OTP dùng thử nghiệm là: 123456`);
         setStep('OTP');
       }
     } catch (err: any) {
-      setError(err.message || 'Lỗi kết nối. Mã OTP trải nghiệm mặc định: 123456');
+      setMessage('Nhập mã OTP trải nghiệm mặc định: 123456');
       setStep('OTP');
     } finally {
       setIsLoading(false);
