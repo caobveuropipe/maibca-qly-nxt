@@ -818,7 +818,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex selection:bg-emerald-500 selection:text-white">
+    <div className="w-full min-w-full min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex selection:bg-emerald-500 selection:text-white">
       {/* Collapsible Left Sidebar */}
       <Sidebar
         activeTab={activeTab}
