@@ -250,14 +250,15 @@ export default function App() {
   const updatePartners = (newPartners: Partner[]) => {
     setPartners(newPartners);
     savePartnersToLocal(newPartners);
+    triggerAutoPush(products, warehouses, transactions, newPartners);
   };
-
 
   // Trigger Debounced Auto-Push (1.5s) when data is mutated
   const triggerAutoPush = (
     updatedProducts = products,
     updatedWarehouses = warehouses,
-    updatedTransactions = transactions
+    updatedTransactions = transactions,
+    updatedPartners = partners
   ) => {
     if (!googleConfig.autoSync || !googleConfig.gasWebappUrl || isAutoSyncingRef.current) {
       return;
@@ -279,7 +280,9 @@ export default function App() {
           warehouses: updatedWarehouses,
           products: updatedProducts,
           transactions: updatedTransactions,
+          partners: updatedPartners,
         };
+
 
         const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
@@ -362,8 +365,13 @@ export default function App() {
             setTransactions(data.data.transactions);
             saveTransactionsToLocal(data.data.transactions);
           }
+          if (data.data.partners && data.data.partners.length >= 0) {
+            setPartners(data.data.partners);
+            savePartnersToLocal(data.data.partners);
+          }
           const timeStr = new Date().toLocaleTimeString('vi-VN');
           setSyncMessage(`⚡ [Realtime] Đã tự động làm mới dữ liệu từ Google Sheet lúc ${timeStr}!`);
+
           updateGoogleConfig({
             ...googleConfig,
             lastSyncedAt: timeStr,
@@ -811,13 +819,20 @@ export default function App() {
 
   // Clear all data
   const handleClearAllData = () => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa TOÀN BỘ dữ liệu mẫu/hiện tại trên máy không? (Sản phẩm, Kho hàng, Phiếu nhập xuất sẽ về 0)')) {
-      updateProducts([]);
-      updateWarehouses([]);
-      updateTransactions([]);
-      alert('Đã xóa sạch dữ liệu! Bạn có thể bắt đầu nhập dữ liệu thực mới.');
+    if (window.confirm('Bạn có chắc chắn muốn xóa TOÀN BỘ dữ liệu mẫu/hiện tại trên máy và trên Google Sheet không? (Sản phẩm, Kho hàng, Phiếu nhập xuất, Đối tác sẽ về 0)')) {
+      setProducts([]);
+      saveProductsToLocal([]);
+      setWarehouses([]);
+      saveWarehousesToLocal([]);
+      setTransactions([]);
+      saveTransactionsToLocal([]);
+      setPartners([]);
+      savePartnersToLocal([]);
+      triggerAutoPush([], [], [], []);
+      alert('Đã xóa sạch dữ liệu trên máy và tự động đồng bộ xóa trắng Google Sheet!');
     }
   };
+
 
   // If not authenticated, render full-screen mandatory Email OTP Login Screen
   if (!isAuthenticated) {
