@@ -55,8 +55,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           setMessage(data.message || `Đã gửi mã OTP đến ${email}. Vui lòng kiểm tra hộp thư!`);
           setStep('OTP');
         } else {
-          if (data.error && (data.error.includes('SEND_OTP') || data.error.includes('không hợp lệ'))) {
-            setMessage('WebApp trên Google Sheet cần được Triển khai bản mới (New Version). Bạn hãy nhập mã OTP dự phòng: 123456 để vào ứng dụng!');
+          if (data.error && (
+            data.error.includes('SEND_OTP') ||
+            data.error.includes('không hợp lệ') ||
+            data.error.includes('permission') ||
+            data.error.includes('MailApp')
+          )) {
+            setMessage('Google Apps Script cần duyệt cấp quyền gửi Email 1 lần đầu tiên trên Google Sheet. Bạn hãy nhập mã OTP dự phòng: 123456 để vào ứng dụng!');
             setStep('OTP');
           } else {
             setError(data.error || 'Không thể gửi OTP. Vui lòng thử lại!');

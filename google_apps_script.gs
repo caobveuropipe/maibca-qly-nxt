@@ -370,3 +370,13 @@ function formatDate(val) {
   }
   return String(val).split("T")[0];
 }
+
+// --------------------------------------------------------
+// HÀM CHẠY THỬ ĐỂ CẤP QUYỀN GỬI EMAIL (AUTHORIZATION GRANT)
+// Hướng dẫn: Mở Apps Script -> Chọn hàm testSendMail -> Bấm "Chạy (Run)" -> Bấm "Duyệt quyền (Review permissions)" -> Bấm "Cho phép (Allow)"
+// --------------------------------------------------------
+function testSendMail() {
+  var userEmail = Session.getActiveUser().getEmail() || "admin@system.local";
+  MailApp.sendEmail(userEmail, "[IMS PRO] Cấp Quyền Gửi OTP Thành Công", "Cấu hình cấp quyền gửi Email OTP cho Google Apps Script đã hoàn tất thành công!");
+  Logger.log("Đã gửi mail cấp quyền thành công đến: " + userEmail);
+}
