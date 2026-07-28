@@ -998,15 +998,15 @@ export default function App() {
             />
           )}
         </main>
-      </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Phần mềm Quản Lý Nhập Xuất Tồn Kho (NXT) - Kết Nối Google Sheets Real-time</span>
-          <span className="font-mono text-[11px]">Trạng Thái Dữ Liệu: Local & Google Drive Sync Ready</span>
-        </div>
-      </footer>
+        {/* Bottom Footer (Located strictly at bottom of main column) */}
+        <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2.5 px-4 text-center text-[11px] text-slate-500 dark:text-slate-400 mt-auto shrink-0">
+          <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span>Phần mềm Quản Lý Nhập Xuất Tồn Kho (NXT) &bull; Kết Nối Google Sheets Real-time</span>
+            <span className="font-mono text-[10px] text-slate-400">Trạng Thái: Local & Google Drive Sync Ready</span>
+          </div>
+        </footer>
+      </div>
 
       {/* Interactive Modals */}
       <TransactionModal
