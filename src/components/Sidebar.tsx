@@ -11,9 +11,16 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCog,
+  Users,
+  PieChart,
+  Package,
+  Warehouse as WarehouseIcon,
+  ReceiptText,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { GoogleSyncConfig, UserRole, AppUser } from '../types';
 import { ActiveTab } from './Header';
+
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -33,6 +40,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
+  activeTab,
+  setActiveTab,
   isCollapsed,
   setIsCollapsed,
   currentUser,
@@ -85,89 +94,184 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* Main Body: Action Buttons */}
-      <div className="p-2 flex-1 overflow-y-auto space-y-1.5">
-        <div className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 ${isCollapsed ? 'text-center' : ''}`}>
-          {!isCollapsed ? 'Thao Tác Nhanh' : 'Thao Tác'}
-        </div>
+      {/* Main Body: Navigation Menu & Action Buttons */}
+      <div className="p-2 flex-1 overflow-y-auto space-y-3">
+        {/* Section 1: Navigation Menu */}
+        <div>
+          <div className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 ${isCollapsed ? 'text-center' : ''}`}>
+            {!isCollapsed ? 'Danh Mục Quản Lý' : 'Menu'}
+          </div>
 
-        {!isViewer && (
-          <>
+          <div className="space-y-1 mt-1">
             <button
-              onClick={onOpenImportModal}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all cursor-pointer ${
-                isCollapsed ? 'justify-center px-0' : ''
-              }`}
-              title="Tạo Phiếu Nhập Kho Mới"
+              onClick={() => setActiveTab('reports')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'reports'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              } ${isCollapsed ? 'justify-center px-0' : ''}`}
+              title="Báo Cáo Nhập Xuất Tồn & Thẻ Kho"
             >
-              <ArrowDownRight className="w-4 h-4 text-emerald-400 shrink-0" />
-              {!isCollapsed && <span>+ Phiếu Nhập</span>}
+              <PieChart className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Báo Cáo NXT</span>}
             </button>
 
             <button
-              onClick={onOpenExportModal}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-bold transition-all cursor-pointer ${
-                isCollapsed ? 'justify-center px-0' : ''
-              }`}
-              title="Tạo Phiếu Xuất Kho Mới"
+              onClick={() => setActiveTab('products')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'products'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              } ${isCollapsed ? 'justify-center px-0' : ''}`}
+              title="Danh Mục Sản Phẩm"
             >
-              <ArrowUpRight className="w-4 h-4 text-blue-400 shrink-0" />
-              {!isCollapsed && <span>+ Phiếu Xuất</span>}
+              <Package className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Sản Phẩm</span>}
             </button>
 
             <button
-              onClick={onOpenExcelUpload}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-all cursor-pointer ${
-                isCollapsed ? 'justify-center px-0' : ''
-              }`}
-              title="Nhập Dữ Liệu Từ Excel"
+              onClick={() => setActiveTab('warehouses')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'warehouses'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              } ${isCollapsed ? 'justify-center px-0' : ''}`}
+              title="Danh Sách Kho Hàng"
             >
-              <Upload className="w-4 h-4 text-slate-400 shrink-0" />
-              {!isCollapsed && <span>Nhập Excel</span>}
+              <WarehouseIcon className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Danh Sách Kho</span>}
             </button>
-          </>
-        )}
 
-        {isAdmin && (
-          <>
             <button
-              onClick={onOpenUserManagement}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all cursor-pointer ${
-                isCollapsed ? 'justify-center px-0' : ''
-              }`}
-              title="Bảng Quản Lý Phân Quyền Email Nhân Viên"
+              onClick={() => setActiveTab('transactions')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'transactions'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              } ${isCollapsed ? 'justify-center px-0' : ''}`}
+              title="Nhật Ký Nhập Xuất"
             >
-              <Shield className="w-4 h-4 text-amber-400 shrink-0" />
-              {!isCollapsed && <span>Bảng Phân Quyền</span>}
+              <ReceiptText className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Nhật Ký NX</span>}
             </button>
 
-            {googleConfig.spreadsheetId && (
+            <button
+              onClick={() => setActiveTab('partners')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'partners'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              } ${isCollapsed ? 'justify-center px-0' : ''}`}
+              title="Quản Lý Nhà Cung Cấp & Khách Hàng"
+            >
+              <Users className="w-4 h-4 shrink-0 text-cyan-400" />
+              {!isCollapsed && <span>Quản Lý Đối Tác</span>}
+            </button>
+
+            {isAdmin && (
               <button
-                onClick={onQuickSync}
-                disabled={isSyncing}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700 transition-all cursor-pointer disabled:opacity-50 ${
-                  isCollapsed ? 'justify-center px-0' : ''
-                }`}
-                title="Đồng Bộ Nhanh Lên Google Sheets"
+                onClick={() => setActiveTab('sheets')}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'sheets'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                title="Cấu Hình Đồng Bộ Google Sheets"
               >
-                <RefreshCw className={`w-4 h-4 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
-                {!isCollapsed && <span>{isSyncing ? 'Đang Đồng Bộ...' : 'Đồng Bộ Sheets'}</span>}
+                <FileSpreadsheet className="w-4 h-4 shrink-0 text-emerald-400" />
+                {!isCollapsed && <span>Đồng Bộ Sheets</span>}
               </button>
             )}
+          </div>
+        </div>
 
-            <button
-              onClick={onClearData}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-red-950/30 hover:bg-red-900/50 border border-red-800/50 text-red-400 text-xs font-medium transition-all cursor-pointer ${
-                isCollapsed ? 'justify-center px-0' : ''
-              }`}
-              title="Xóa Sạch Dữ Liệu Mẫu / Hiện Tại"
-            >
-              <Trash2 className="w-4 h-4 text-red-400 shrink-0" />
-              {!isCollapsed && <span>Xóa Dữ Liệu</span>}
-            </button>
-          </>
-        )}
+        {/* Section 2: Quick Actions */}
+        <div>
+          <div className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-t border-slate-800 pt-2 ${isCollapsed ? 'text-center' : ''}`}>
+            {!isCollapsed ? 'Thao Tác Nhanh' : 'Tạo Ph.}'}
+          </div>
+
+          <div className="space-y-1.5 mt-1">
+            {!isViewer && (
+              <>
+                <button
+                  onClick={onOpenImportModal}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all cursor-pointer ${
+                    isCollapsed ? 'justify-center px-0' : ''
+                  }`}
+                  title="Tạo Phiếu Nhập Kho Mới"
+                >
+                  <ArrowDownRight className="w-4 h-4 text-emerald-400 shrink-0" />
+                  {!isCollapsed && <span>+ Phiếu Nhập</span>}
+                </button>
+
+                <button
+                  onClick={onOpenExportModal}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-bold transition-all cursor-pointer ${
+                    isCollapsed ? 'justify-center px-0' : ''
+                  }`}
+                  title="Tạo Phiếu Xuất Kho Mới"
+                >
+                  <ArrowUpRight className="w-4 h-4 text-blue-400 shrink-0" />
+                  {!isCollapsed && <span>+ Phiếu Xuất</span>}
+                </button>
+
+                <button
+                  onClick={onOpenExcelUpload}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-all cursor-pointer ${
+                    isCollapsed ? 'justify-center px-0' : ''
+                  }`}
+                  title="Nhập Dữ Liệu Từ Excel"
+                >
+                  <Upload className="w-4 h-4 text-slate-400 shrink-0" />
+                  {!isCollapsed && <span>Nhập Excel</span>}
+                </button>
+              </>
+            )}
+
+            {isAdmin && (
+              <>
+                <button
+                  onClick={onOpenUserManagement}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all cursor-pointer ${
+                    isCollapsed ? 'justify-center px-0' : ''
+                  }`}
+                  title="Bảng Quản Lý Phân Quyền Email Nhân Viên"
+                >
+                  <Shield className="w-4 h-4 text-amber-400 shrink-0" />
+                  {!isCollapsed && <span>Bảng Phân Quyền</span>}
+                </button>
+
+                {googleConfig.spreadsheetId && (
+                  <button
+                    onClick={onQuickSync}
+                    disabled={isSyncing}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700 transition-all cursor-pointer disabled:opacity-50 ${
+                      isCollapsed ? 'justify-center px-0' : ''
+                    }`}
+                    title="Đồng Bộ Nhanh Lên Google Sheets"
+                  >
+                    <RefreshCw className={`w-4 h-4 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
+                    {!isCollapsed && <span>{isSyncing ? 'Đang Đồng Bộ...' : 'Đồng Bộ Sheets'}</span>}
+                  </button>
+                )}
+
+                <button
+                  onClick={onClearData}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-red-950/30 hover:bg-red-900/50 border border-red-800/50 text-red-400 text-xs font-medium transition-all cursor-pointer ${
+                    isCollapsed ? 'justify-center px-0' : ''
+                  }`}
+                  title="Xóa Sạch Dữ Liệu Mẫu / Hiện Tại"
+                >
+                  <Trash2 className="w-4 h-4 text-red-400 shrink-0" />
+                  {!isCollapsed && <span>Xóa Dữ Liệu</span>}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
+
 
       {/* User Info Card (Positioned at VERY BOTTOM of Sidebar) */}
       {currentUser && (

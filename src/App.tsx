@@ -910,6 +910,18 @@ export default function App() {
               </button>
 
               <button
+                onClick={() => setActiveTab('partners')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'partners'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" /> Quản Lý Đối Tác
+              </button>
+
+
+              <button
                 onClick={() => setActiveTab('sheets')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'sheets'
