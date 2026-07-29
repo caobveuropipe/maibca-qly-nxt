@@ -101,37 +101,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         try {
           data = JSON.parse(text);
         } catch {
-          if (otp.trim() === '123456') {
-            data = {
-              success: true,
-              user: {
-                email: email.trim(),
-                name: email.split('@')[0],
-                role: 'EDITOR',
-                token: 'sess_local_' + Date.now(),
-              },
-            };
-          } else {
-            throw new Error('Mã OTP không hợp lệ!');
-          }
+          throw new Error('Mã OTP hoặc định dạng phản hồi không hợp lệ!');
         }
 
         if (data.success && data.user) {
           onLoginSuccess(data.user);
         } else {
-          setError(data.error || 'Mã OTP không chính xác!');
+          setError(data.error || 'Mã OTP không chính xác hoặc đã hết hạn!');
         }
       } else {
-        if (otp.length === 6) {
-          onLoginSuccess({
-            email: email.trim() || 'user@company.com',
-            name: email.split('@')[0] || 'User',
-            role: 'EDITOR',
-            token: 'sess_local_' + Date.now(),
-          });
-        } else {
-          setError('Mã OTP phải gồm 6 chữ số!');
-        }
+        setError('Chưa cấu hình Google WebApp URL!');
       }
     } catch (err: any) {
       setError(err.message || 'Xác minh OTP thất bại!');
@@ -140,22 +119,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
   };
 
-
-  const handleAdminPinLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (adminInputPin.trim() === adminPin) {
-      onLoginSuccess({
-        email: 'admin@system.local',
-        name: 'Admin Quản Trị',
-        role: 'ADMIN',
-        token: 'sess_admin_pin_' + Date.now(),
-      });
-    } else {
-      setError(`Mã PIN Admin không đúng (Mặc định: ${adminPin})`);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4 selection:bg-blue-500 selection:text-white font-sans">

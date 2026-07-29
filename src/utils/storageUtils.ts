@@ -106,16 +106,21 @@ export const DEFAULT_APP_USERS: AppUser[] = [
 export const loadAppUsers = (): AppUser[] => {
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY_APP_USERS);
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed: AppUser[] = JSON.parse(saved);
+      return parsed.map((u) => ({ ...u, email: (u.email || '').trim().toLowerCase() }));
+    }
   } catch (e) {
     console.error('Failed to load app users:', e);
   }
-  return DEFAULT_APP_USERS;
+  return DEFAULT_APP_USERS.map((u) => ({ ...u, email: (u.email || '').trim().toLowerCase() }));
 };
 
 export const saveAppUsersToLocal = (users: AppUser[]) => {
-  localStorage.setItem(LOCAL_STORAGE_KEY_APP_USERS, JSON.stringify(users));
+  const normalized = users.map((u) => ({ ...u, email: (u.email || '').trim().toLowerCase() }));
+  localStorage.setItem(LOCAL_STORAGE_KEY_APP_USERS, JSON.stringify(normalized));
 };
+
 
 export const loadCurrentUser = (): AppUser => {
   try {

@@ -77,15 +77,40 @@ function doPost(e) {
       var cachedOtp = cache.get("OTP_" + targetEmail);
 
       if (!cachedOtp || cachedOtp !== inputOtp) {
-        if (inputOtp !== "123456") {
-          return responseJSON({ success: false, error: "Mã OTP không chính xác hoặc đã hết hạn. Vui lòng thử lại!" });
-        }
+        return responseJSON({ success: false, error: "Mã OTP không chính xác hoặc đã hết hạn. Vui lòng thử lại!" });
       }
 
       cache.remove("OTP_" + targetEmail);
 
+      // Tra cứu quyền truy cập từ sheet PHAN_QUYEN
+      ensureSheetsExist(ss);
+      var userRole = "";
       var userName = targetEmail.split("@")[0].toUpperCase();
-      var userRole = "ADMIN";
+      var sheetUser = ss.getSheetByName("PHAN_QUYEN");
+
+      if (sheetUser) {
+        var userValues = sheetUser.getDataRange().getValues();
+        for (var i = 1; i < userValues.length; i++) {
+          var rowEmail = (userValues[i][1] || "").toString().trim().toLowerCase();
+          if (rowEmail === targetEmail) {
+            userName = userValues[i][2] || userName;
+            userRole = (userValues[i][3] || "").toString().trim().toUpperCase();
+            var status = (userValues[i][4] || "ACTIVE").toString().trim().toUpperCase();
+            if (status === "LOCKED") {
+              return responseJSON({ success: false, error: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!" });
+            }
+            break;
+          }
+        }
+      }
+
+      // Nếu email không tồn tại trong Bảng Phân Quyền sheet PHAN_QUYEN -> Từ chối đăng nhập
+      if (!userRole) {
+        return responseJSON({
+          success: false,
+          error: "Email (" + targetEmail + ") chưa được cấp quyền truy cập hệ thống. Vui lòng liên hệ Admin!"
+        });
+      }
 
       return responseJSON({
         success: true,
@@ -98,6 +123,7 @@ function doPost(e) {
         }
       });
     }
+
 
     // 2. Action: SYNC_UP (Đẩy dữ liệu từ WebApp vào Google Sheet)
     if (action === "SYNC_UP") {

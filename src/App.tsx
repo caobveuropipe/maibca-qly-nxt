@@ -204,18 +204,24 @@ export default function App() {
   const handleLoginSuccess = (user: { email: string; name: string; role: any; token: string }) => {
     const userEmail = (user.email || '').trim().toLowerCase();
 
-    // Check if email exists in AppUsers list (Bảng phân quyền)
+    // Check if email exists in local AppUsers list (Bảng phân quyền)
     const foundUser = users.find((u) => u.email.trim().toLowerCase() === userEmail);
 
-    let assignedRole: UserRole = 'VIEWER';
+    // Ưu tiên role từ Bảng Phân Quyền local; nếu không thấy local nhưng server GAS đã cấp role hợp lệ thì dùng role của server
+    let assignedRole: UserRole | null = null;
     let displayName = user.name || userEmail.split('@')[0];
 
     if (foundUser) {
       assignedRole = foundUser.role;
       displayName = foundUser.name;
-    } else {
-      // Nếu email hoàn toàn mới chưa được cấp quyền trong Bảng Phân Quyền -> Mặc định là VIEWER (Chỉ xem)
-      assignedRole = 'VIEWER';
+    } else if (user.role && ['ADMIN', 'EDITOR', 'VIEWER'].includes(user.role)) {
+      assignedRole = user.role as UserRole;
+    }
+
+    // Nếu KHÔNG CÓ TRONG BẢNG PHÂN QUYỀN -> Từ chối đăng nhập 100%, không cấp session
+    if (!assignedRole) {
+      alert(`Đăng nhập thất bại: Email (${userEmail}) chưa được cấp quyền truy cập hệ thống. Vui lòng liên hệ Admin!`);
+      return;
     }
 
     const updatedUserObj: AppUser = {
@@ -228,7 +234,12 @@ export default function App() {
       createdAt: new Date().toISOString(),
     };
 
-
+    // Nếu user chưa có trong danh sách local, thêm vào để lưu đồng bộ
+    if (!foundUser) {
+      const newUsersList = [...users, updatedUserObj];
+      setUsers(newUsersList);
+      saveAppUsersToLocal(newUsersList);
+    }
 
     localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_TOKEN, user.token);
     localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_USER, JSON.stringify(updatedUserObj));
@@ -243,6 +254,7 @@ export default function App() {
       userRole: assignedRole,
     });
   };
+
 
   const handleLogout = () => {
     if (window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng không?')) {
