@@ -701,6 +701,8 @@ export default function App() {
           warehouses,
           products,
           transactions,
+          partners,
+          users,
         };
 
         const res = await fetch(googleConfig.gasWebappUrl, {
@@ -719,7 +721,7 @@ export default function App() {
         }
 
         if (data.success) {
-          setSyncMessage(data.message || `Đã đồng bộ ${products.length} SP và ${transactions.length} phiếu!`);
+          setSyncMessage(data.message || `Đã đồng bộ ${products.length} SP, ${transactions.length} phiếu và ${users.length} tài khoản!`);
           updateGoogleConfig({
             ...googleConfig,
             lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
@@ -786,6 +788,14 @@ export default function App() {
           if (data.data.transactions && data.data.transactions.length >= 0) {
             updateTransactions(data.data.transactions);
           }
+          if (data.data.partners && data.data.partners.length >= 0) {
+            updatePartners(data.data.partners);
+          }
+          if (data.data.users && data.data.users.length >= 0) {
+            setUsers(data.data.users);
+            saveAppUsersToLocal(data.data.users);
+          }
+
 
           setSyncMessage('Cập nhật dữ liệu từ Google Sheet (GAS WebApp) thành công!');
           updateGoogleConfig({
