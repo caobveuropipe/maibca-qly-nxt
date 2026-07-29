@@ -246,8 +246,74 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
             </div>
           </div>
 
+          {/* Matrix Table: Bảng Chi Tiết Quyền Theo Role */}
+          <div className="space-y-3 pt-2 border-t border-slate-800">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <Shield className="w-4 h-4" /> Bảng Ma Trận Phân Quyền Chi Tiết Theo Vai Trò (Role Matrix)
+            </h4>
+
+            <div className="bg-slate-800/90 border border-slate-700 rounded-xl overflow-hidden shadow-sm">
+              <table className="w-full text-left text-xs divide-y divide-slate-700">
+                <thead className="bg-slate-950 text-slate-400 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Tính Năng / Thẻ Chức Năng</th>
+                    <th className="p-3 text-center text-amber-400 bg-amber-950/30">👑 ADMIN</th>
+                    <th className="p-3 text-center text-blue-400 bg-blue-950/30">✏️ EDITOR</th>
+                    <th className="p-3 text-center text-slate-300 bg-slate-800/60">👁️ VIEWER</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/60 font-medium">
+                  <tr className="hover:bg-slate-700/30">
+                    <td className="p-2.5 font-bold text-slate-200">⚙️ Nút Cấu Hình & Chuyển Vai Trò (Header)</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-amber-950/10">✅ Hiển thị</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold bg-blue-950/10">❌ Ẩn</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold">❌ Ẩn</td>
+                  </tr>
+                  <tr className="hover:bg-slate-700/30">
+                    <td className="p-2.5 font-bold text-slate-200">🛡️ Bảng Phân Quyền Email Nhân Viên (Sidebar)</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-amber-950/10">✅ Hiển thị & Cấp quyền</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold bg-blue-950/10">❌ Ẩn</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold">❌ Ẩn</td>
+                  </tr>
+                  <tr className="hover:bg-slate-700/30">
+                    <td className="p-2.5 font-bold text-slate-200">📊 Tab & Nút Đồng Bộ Sheets</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-amber-950/10">✅ Hiển thị & Cấu hình</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold bg-blue-950/10">❌ Ẩn</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold">❌ Ẩn</td>
+                  </tr>
+                  <tr className="hover:bg-slate-700/30">
+                    <td className="p-2.5 font-bold text-slate-200">🗑️ Nút Xóa Sạch Dữ Liệu (Clear All)</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-amber-950/10">✅ Cho phép</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold bg-blue-950/10">❌ Ẩn</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold">❌ Ẩn</td>
+                  </tr>
+                  <tr className="hover:bg-slate-700/30">
+                    <td className="p-2.5 text-slate-300">📦 Lập Phiếu Nhập / Phiếu Xuất / Nhập Excel</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-amber-950/10">✅ Cho phép</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-blue-950/10">✅ Cho phép</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold">❌ Ẩn / Khóa nút</td>
+                  </tr>
+                  <tr className="hover:bg-slate-700/30">
+                    <td className="p-2.5 text-slate-300">🤝 Thêm / Sửa / Xóa Sản Phẩm, Kho & Đối Tác</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-amber-950/10">✅ Cho phép</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-blue-950/10">✅ Cho phép</td>
+                    <td className="p-2.5 text-center text-red-400 font-bold">❌ Chỉ xem</td>
+                  </tr>
+                  <tr className="hover:bg-slate-700/30">
+                    <td className="p-2.5 text-slate-300">📈 Xem Báo Cáo NXT & Thẻ Kho Chi Tiết</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-amber-950/10">✅ Đầy đủ</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold bg-blue-950/10">✅ Đầy đủ</td>
+                    <td className="p-2.5 text-center text-emerald-400 font-bold">✅ Đầy đủ</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+
         </div>
       </div>
+
     </div>
   );
 };

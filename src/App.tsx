@@ -973,17 +973,20 @@ export default function App() {
               </span>
             )}
 
-            {/* Settings / Role Switcher Button (Bánh Răng Cấu Hình) */}
-            <button
-              onClick={() => setIsRoleModalOpen(true)}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
-              title="Cấu Hình Phân Quyền & Chuyển Vai Trò"
-            >
-              <Settings className="w-4 h-4 text-amber-500 animate-spin-slow" />
-              <span className="hidden sm:inline text-amber-600 dark:text-amber-400 font-bold">Cấu Hình</span>
-            </button>
+            {/* Settings / Role Switcher Button (Bánh Răng Cấu Hình - Chỉ Admin mới thấy) */}
+            {(currentUser?.role === 'ADMIN' || googleConfig.userRole === 'ADMIN') && (
+              <button
+                onClick={() => setIsRoleModalOpen(true)}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
+                title="Cấu Hình Phân Quyền & Chuyển Vai Trò"
+              >
+                <Settings className="w-4 h-4 text-amber-500 animate-spin-slow" />
+                <span className="hidden sm:inline text-amber-600 dark:text-amber-400 font-bold">Cấu Hình</span>
+              </button>
+            )}
           </div>
         </header>
+
 
 
         {/* Maximized Data Tables Workspace */}
