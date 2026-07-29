@@ -158,15 +158,29 @@ export default function App() {
     saveAppUsersToLocal(updated);
     triggerAutoPush(products, warehouses, transactions, partners, updated);
 
-    // Sync currentUser & googleConfig if edited email matches current user email or id
+    // Find edited user before update to compare email
+    const editedUserBefore = editId ? users.find((u) => u.id === editId) : null;
     const currentEmail = (currentUser?.email || '').trim().toLowerCase();
-    const updatedTarget = updated.find((u) => u.id === editId || u.email.trim().toLowerCase() === currentEmail);
-    if (updatedTarget) {
-      setCurrentUser(updatedTarget);
-      saveCurrentUserToLocal(updatedTarget);
-      updateGoogleConfig({ ...googleConfig, userRole: updatedTarget.role });
+
+    // Check if edited user was the current logged in user (by ID or former email)
+    const isEditingCurrentUser = !!(
+      (editId && currentUser.id === editId) ||
+      (editedUserBefore && editedUserBefore.email.trim().toLowerCase() === currentEmail) ||
+      userData.email.trim().toLowerCase() === currentEmail
+    );
+
+    if (isEditingCurrentUser) {
+      const updatedUserObj: AppUser = {
+        ...currentUser,
+        ...userData,
+        id: editId || currentUser.id,
+      };
+      setCurrentUser(updatedUserObj);
+      saveCurrentUserToLocal(updatedUserObj);
+      updateGoogleConfig({ ...googleConfig, userRole: userData.role });
     }
   };
+
 
 
   const handleDeleteUser = (userId: string) => {
@@ -196,14 +210,15 @@ export default function App() {
     let assignedRole: any = 'EDITOR';
     let displayName = user.name || userEmail.split('@')[0];
 
-    if (userEmail === 'caobv.europipe@gmail.com' || userEmail === 'admin@system.local') {
-      assignedRole = 'ADMIN';
-    } else if (foundUser) {
+    if (foundUser) {
       assignedRole = foundUser.role;
       displayName = foundUser.name;
+    } else if (userEmail === 'caobv.europipe@gmail.com' || userEmail === 'admin@system.local') {
+      assignedRole = 'ADMIN';
     } else {
       assignedRole = user.role || 'EDITOR';
     }
+
 
     const updatedUserObj: AppUser = {
       id: foundUser ? foundUser.id : `usr-${Date.now()}`,
