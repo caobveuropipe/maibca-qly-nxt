@@ -207,16 +207,18 @@ export default function App() {
     // Check if email exists in local AppUsers list (Bảng phân quyền)
     const foundUser = users.find((u) => u.email.trim().toLowerCase() === userEmail);
 
-    // Ưu tiên role từ Bảng Phân Quyền local; nếu không thấy local nhưng server GAS đã cấp role hợp lệ thì dùng role của server
+    // Ưu tiên role từ Server GAS (vừa tra cứu trực tiếp từ Google Sheet); nếu không có mới dùng local cache
     let assignedRole: UserRole | null = null;
     let displayName = user.name || userEmail.split('@')[0];
 
-    if (foundUser) {
+    if (user.role && ['ADMIN', 'EDITOR', 'VIEWER'].includes(user.role)) {
+      assignedRole = user.role as UserRole;
+      if (foundUser) displayName = foundUser.name;
+    } else if (foundUser) {
       assignedRole = foundUser.role;
       displayName = foundUser.name;
-    } else if (user.role && ['ADMIN', 'EDITOR', 'VIEWER'].includes(user.role)) {
-      assignedRole = user.role as UserRole;
     }
+
 
     // Nếu KHÔNG CÓ TRONG BẢNG PHÂN QUYỀN -> Từ chối đăng nhập 100%, không cấp session
     if (!assignedRole) {
