@@ -213,10 +213,8 @@ export default function App() {
     if (foundUser) {
       assignedRole = foundUser.role;
       displayName = foundUser.name;
-    } else if (userEmail === 'caobv.europipe@gmail.com' || userEmail === 'admin@system.local') {
-      assignedRole = 'ADMIN';
     } else {
-      // Nếu email hoàn toàn mới chưa được Admin cấp quyền trong Bảng Phân Quyền -> Mặc định là VIEWER (Chỉ xem)
+      // Nếu email hoàn toàn mới chưa được cấp quyền trong Bảng Phân Quyền -> Mặc định là VIEWER (Chỉ xem)
       assignedRole = 'VIEWER';
     }
 
@@ -229,6 +227,7 @@ export default function App() {
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
     };
+
 
 
     localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_TOKEN, user.token);
@@ -416,7 +415,20 @@ export default function App() {
           if (data.data.users && data.data.users.length >= 0) {
             setUsers(data.data.users);
             saveAppUsersToLocal(data.data.users);
+
+            // Re-evaluate current logged-in user's role from newly pulled users list
+            const activeUserEmail = (currentUser?.email || '').trim().toLowerCase();
+            const matchedActiveUser = data.data.users.find(
+              (u: AppUser) => u.email.trim().toLowerCase() === activeUserEmail
+            );
+            if (matchedActiveUser && matchedActiveUser.role !== currentUser?.role) {
+              const updatedCurrUser = { ...currentUser, role: matchedActiveUser.role };
+              setCurrentUser(updatedCurrUser);
+              saveCurrentUserToLocal(updatedCurrUser);
+              updateGoogleConfig({ ...googleConfig, userRole: matchedActiveUser.role });
+            }
           }
+
           const timeStr = new Date().toLocaleTimeString('vi-VN');
           setSyncMessage(`⚡ [Realtime] Đã tự động làm mới dữ liệu từ Google Sheet lúc ${timeStr}!`);
 
