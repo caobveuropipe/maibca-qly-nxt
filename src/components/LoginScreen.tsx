@@ -226,18 +226,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 </>
               )}
             </button>
-
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={() => setStep('ADMIN_PIN')}
-                className="text-xs text-slate-400 hover:text-amber-400 transition-colors underline"
-              >
-                Đăng nhập nhanh bằng Mã PIN Admin
-              </button>
-            </div>
           </form>
         )}
+
 
         {/* Step 2: Verify 6-digit OTP */}
         {step === 'OTP' && (
