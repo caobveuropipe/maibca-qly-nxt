@@ -85,6 +85,17 @@ export interface StockCardItem {
 
 export type UserRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
+export type PermissionKey =
+  | 'canConfig'        // ⚙️ Nút Cấu Hình & Chuyển Vai Trò (Header)
+  | 'canManageUsers'   // 🛡️ Bảng Phân Quyền Email Nhân Viên (Sidebar)
+  | 'canSyncSheets'    // 📊 Tab & Nút Đồng Bộ Sheets
+  | 'canClearData'     // 🗑️ Nút Xóa Sạch Dữ Liệu
+  | 'canCreateVoucher' // 📦 Lập Phiếu Nhập / Phiếu Xuất / Nhập Excel
+  | 'canManageMaster'  // 🤝 Thêm / Sửa / Xóa Sản Phẩm, Kho & Đối Tác
+  | 'canViewReports';  // 📈 Xem Báo Cáo NXT & Thẻ Kho Chi Tiết
+
+export type RolePermissionsMap = Record<UserRole, Record<PermissionKey, boolean>>;
+
 export interface AppUser {
   id: string;
   name: string;
@@ -94,6 +105,7 @@ export interface AppUser {
   status: 'ACTIVE' | 'LOCKED';
   createdAt: string;
 }
+
 
 export type PartnerType = 'NHA_CUNG_CAP' | 'KHACH_HANG';
 

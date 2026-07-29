@@ -20,7 +20,11 @@ import {
   saveAppUsersToLocal,
   loadCurrentUser,
   saveCurrentUserToLocal,
+  loadRolePermissions,
+  saveRolePermissionsToLocal,
 } from './utils/storageUtils';
+import { PermissionKey, RolePermissionsMap, UserRole } from './types';
+
 
 import { PartnersView } from './components/PartnersView';
 import { Partner } from './types';
@@ -120,6 +124,21 @@ export default function App() {
   const [inputPin, setInputPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [categories, setCategories] = useState<string[]>(() => loadCategories());
+  const [rolePermissions, setRolePermissions] = useState<RolePermissionsMap>(() => loadRolePermissions());
+
+  const handleTogglePermission = (role: UserRole, key: PermissionKey) => {
+    if (role === 'ADMIN') return; // Admin always has full access
+    const updated = {
+      ...rolePermissions,
+      [role]: {
+        ...rolePermissions[role],
+        [key]: !rolePermissions[role][key],
+      },
+    };
+    setRolePermissions(updated);
+    saveRolePermissionsToLocal(updated);
+  };
+
 
 
   // User Handlers
@@ -869,7 +888,9 @@ export default function App() {
         setIsCollapsed={handleToggleSidebar}
         currentUser={currentUser}
         googleConfig={googleConfig}
+        rolePermissions={rolePermissions}
         onOpenImportModal={handleOpenImportModal}
+
         onOpenExportModal={handleOpenExportModal}
         onOpenExcelUpload={() => setIsExcelUploadOpen(true)}
         onOpenUserManagement={() => setIsUserManagementOpen(true)}
@@ -950,7 +971,7 @@ export default function App() {
               </button>
 
 
-              {(currentUser?.role === 'ADMIN' || googleConfig.userRole === 'ADMIN') && (
+              {(rolePermissions[currentUser?.role || googleConfig.userRole || 'ADMIN']?.canSyncSheets) && (
                 <button
                   onClick={() => setActiveTab('sheets')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
@@ -973,8 +994,8 @@ export default function App() {
               </span>
             )}
 
-            {/* Settings / Role Switcher Button (Bánh Răng Cấu Hình - Chỉ Admin mới thấy) */}
-            {(currentUser?.role === 'ADMIN' || googleConfig.userRole === 'ADMIN') && (
+            {/* Settings / Role Switcher Button (Bánh Răng Cấu Hình) */}
+            {(rolePermissions[currentUser?.role || googleConfig.userRole || 'ADMIN']?.canConfig) && (
               <button
                 onClick={() => setIsRoleModalOpen(true)}
                 className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
@@ -984,6 +1005,7 @@ export default function App() {
                 <span className="hidden sm:inline text-amber-600 dark:text-amber-400 font-bold">Cấu Hình</span>
               </button>
             )}
+
           </div>
         </header>
 
@@ -1168,7 +1190,10 @@ export default function App() {
         users={users}
         onSaveUser={handleSaveUser}
         onDeleteUser={handleDeleteUser}
+        rolePermissions={rolePermissions}
+        onTogglePermission={handleTogglePermission}
       />
+
 
       <AccountLoginModal
         isOpen={isLoginModalOpen}

@@ -1,4 +1,4 @@
-import { Product, Warehouse, Transaction, StockSummaryItem, StockCardItem, GoogleSyncConfig, AppUser } from '../types';
+import { Product, Warehouse, Transaction, StockSummaryItem, StockCardItem, GoogleSyncConfig, AppUser, RolePermissionsMap } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_TRANSACTIONS, INITIAL_WAREHOUSES } from '../data/mockData';
 import { formatVND, formatNum } from './pdfUtils';
 
@@ -11,6 +11,56 @@ const LOCAL_STORAGE_KEY_GOOGLE_CONFIG = 'nxt_inventory_google_config_v1';
 const LOCAL_STORAGE_KEY_CATEGORIES = 'nxt_inventory_categories_v1';
 const LOCAL_STORAGE_KEY_APP_USERS = 'nxt_inventory_app_users_v1';
 const LOCAL_STORAGE_KEY_CURRENT_USER = 'nxt_inventory_current_user_v1';
+const LOCAL_STORAGE_KEY_ROLE_PERMISSIONS = 'nxt_inventory_role_permissions_v1';
+
+export const DEFAULT_ROLE_PERMISSIONS: RolePermissionsMap = {
+  ADMIN: {
+    canConfig: true,
+    canManageUsers: true,
+    canSyncSheets: true,
+    canClearData: true,
+    canCreateVoucher: true,
+    canManageMaster: true,
+    canViewReports: true,
+  },
+  EDITOR: {
+    canConfig: false,
+    canManageUsers: false,
+    canSyncSheets: false,
+    canClearData: false,
+    canCreateVoucher: true,
+    canManageMaster: true,
+    canViewReports: true,
+  },
+  VIEWER: {
+    canConfig: false,
+    canManageUsers: false,
+    canSyncSheets: false,
+    canClearData: false,
+    canCreateVoucher: false,
+    canManageMaster: false,
+    canViewReports: true,
+  },
+};
+
+export const loadRolePermissions = (): RolePermissionsMap => {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_ROLE_PERMISSIONS);
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    console.error('Failed to load role permissions:', e);
+  }
+  return DEFAULT_ROLE_PERMISSIONS;
+};
+
+export const saveRolePermissionsToLocal = (map: RolePermissionsMap) => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY_ROLE_PERMISSIONS, JSON.stringify(map));
+  } catch (e) {
+    console.error('Failed to save role permissions:', e);
+  }
+};
+
 
 export const DEFAULT_CATEGORIES = ['Thiết Bị', 'Vật Tư In Phụ Kiện', 'Bao Bì Đóng Gói', 'Linh Kiện', 'Khác'];
 
