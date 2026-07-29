@@ -158,16 +158,16 @@ export default function App() {
     saveAppUsersToLocal(updated);
     triggerAutoPush(products, warehouses, transactions, partners, updated);
 
-    // If active user was updated, sync currentUser state
-    if (editId && currentUser.id === editId) {
-      const found = updated.find((u) => u.id === editId);
-      if (found) {
-        setCurrentUser(found);
-        saveCurrentUserToLocal(found);
-        updateGoogleConfig({ ...googleConfig, userRole: found.role });
-      }
+    // Sync currentUser & googleConfig if edited email matches current user email or id
+    const currentEmail = (currentUser?.email || '').trim().toLowerCase();
+    const updatedTarget = updated.find((u) => u.id === editId || u.email.trim().toLowerCase() === currentEmail);
+    if (updatedTarget) {
+      setCurrentUser(updatedTarget);
+      saveCurrentUserToLocal(updatedTarget);
+      updateGoogleConfig({ ...googleConfig, userRole: updatedTarget.role });
     }
   };
+
 
   const handleDeleteUser = (userId: string) => {
     if (users.length <= 1) return;
