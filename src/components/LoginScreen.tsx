@@ -63,11 +63,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         setStep('OTP');
       }
     } catch (err: any) {
-      setError(err.message || 'Lỗi kết nối tới hệ thống xác thực OTP!');
+      let msg = err.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('CORS') || msg.includes('404')) {
+        msg = 'Không thể kết nối đến WebApp URL. Hãy dán WebApp URL mới của Google Sheet vào ứng dụng hoặc đăng nhập bằng Mã PIN Admin để cài đặt lại!';
+      }
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
