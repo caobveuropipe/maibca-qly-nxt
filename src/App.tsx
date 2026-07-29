@@ -137,6 +137,7 @@ export default function App() {
     }
     setUsers(updated);
     saveAppUsersToLocal(updated);
+    triggerAutoPush(products, warehouses, transactions, partners, updated);
 
     // If active user was updated, sync currentUser state
     if (editId && currentUser.id === editId) {
@@ -155,8 +156,10 @@ export default function App() {
       const updated = users.filter((u) => u.id !== userId);
       setUsers(updated);
       saveAppUsersToLocal(updated);
+      triggerAutoPush(products, warehouses, transactions, partners, updated);
     }
   };
+
 
   const handleSelectUserLogin = (user: AppUser) => {
     setCurrentUser(user);
@@ -263,7 +266,8 @@ export default function App() {
     updatedProducts = products,
     updatedWarehouses = warehouses,
     updatedTransactions = transactions,
-    updatedPartners = partners
+    updatedPartners = partners,
+    updatedUsers = users
   ) => {
     if (!googleConfig.autoSync || !googleConfig.gasWebappUrl || isAutoSyncingRef.current) {
       return;
@@ -286,8 +290,8 @@ export default function App() {
           products: updatedProducts,
           transactions: updatedTransactions,
           partners: updatedPartners,
+          users: updatedUsers,
         };
-
 
         const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
@@ -374,8 +378,13 @@ export default function App() {
             setPartners(data.data.partners);
             savePartnersToLocal(data.data.partners);
           }
+          if (data.data.users && data.data.users.length >= 0) {
+            setUsers(data.data.users);
+            saveAppUsersToLocal(data.data.users);
+          }
           const timeStr = new Date().toLocaleTimeString('vi-VN');
           setSyncMessage(`⚡ [Realtime] Đã tự động làm mới dữ liệu từ Google Sheet lúc ${timeStr}!`);
+
 
           updateGoogleConfig({
             ...googleConfig,

@@ -190,14 +190,33 @@ function doPost(e) {
       });
       updateSheetData(ss, "DOI_TAC", partRows);
 
+      // Ghi PHAN_QUYEN
+      var users = data.users || [];
+      var userRows = [
+        ["ID (Hệ Thống)", "Email (*)", "Họ Và Tên", "Vai Trò (ADMIN/EDITOR/VIEWER)", "Trạng Thái (ACTIVE/LOCKED)", "Mã PIN", "Thời Gian Tạo"]
+      ];
+      users.forEach(function(u) {
+        userRows.push([
+          u.id || "",
+          u.email || "",
+          u.name || "",
+          u.role || "EDITOR",
+          u.status || "ACTIVE",
+          u.pin || "123456",
+          u.createdAt || ""
+        ]);
+      });
+      updateSheetData(ss, "PHAN_QUYEN", userRows);
+
       // Ghi Nhật Ký
-      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu, " + partners.length + " đối tác");
+      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu, " + partners.length + " đối tác, " + users.length + " tài khoản");
 
       return responseJSON({
         success: true,
-        message: "Đã đồng bộ " + products.length + " sản phẩm, " + transactions.length + " phiếu và " + partners.length + " đối tác lên Google Sheet!"
+        message: "Đã đồng bộ " + products.length + " sản phẩm, " + transactions.length + " phiếu, " + partners.length + " đối tác và " + users.length + " tài khoản phân quyền lên Google Sheet!"
       });
     }
+
 
     // 3. Action: SYNC_DOWN (Tải dữ liệu từ Google Sheet về WebApp)
     if (action === "SYNC_DOWN") {
@@ -331,7 +350,28 @@ function doPost(e) {
         }
       }
 
-      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu, " + partnersList.length + " đối tác");
+      // Đọc PHAN_QUYEN
+      var userSheet = ss.getSheetByName("PHAN_QUYEN");
+      var userData = userSheet ? userSheet.getDataRange().getValues() : [];
+      var usersList = [];
+      
+      var uHasId = userData.length > 0 && String(userData[0][0]).indexOf("ID") !== -1;
+      for (var uIdx = 1; uIdx < userData.length; uIdx++) {
+        var uRow = userData[uIdx];
+        var uEmail = uHasId ? String(uRow[1] || "") : String(uRow[0] || "");
+        if (!uEmail) continue;
+        usersList.push({
+          id: uHasId ? (String(uRow[0]) || ("usr-gas-" + uIdx)) : ("usr-gas-" + uIdx),
+          email: uEmail,
+          name: String(uHasId ? uRow[2] : uRow[1] || ""),
+          role: String(uHasId ? uRow[3] : uRow[2] || "EDITOR"),
+          status: String(uHasId ? uRow[4] : uRow[3] || "ACTIVE"),
+          pin: String(uHasId ? uRow[5] : uRow[4] || "123456"),
+          createdAt: String(uHasId ? uRow[6] : uRow[5] || new Date().toISOString())
+        });
+      }
+
+      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu, " + partnersList.length + " đối tác, " + usersList.length + " tài khoản");
 
       return responseJSON({
         success: true,
@@ -339,9 +379,11 @@ function doPost(e) {
           warehouses: warehousesList,
           products: productsList,
           transactions: transactionsList,
-          partners: partnersList
+          partners: partnersList,
+          users: usersList
         }
       });
+
 
     }
 
