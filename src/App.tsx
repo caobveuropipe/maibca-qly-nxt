@@ -204,10 +204,10 @@ export default function App() {
   const handleLoginSuccess = (user: { email: string; name: string; role: any; token: string }) => {
     const userEmail = (user.email || '').trim().toLowerCase();
 
-    // Check if email exists in AppUsers list
+    // Check if email exists in AppUsers list (Bảng phân quyền)
     const foundUser = users.find((u) => u.email.trim().toLowerCase() === userEmail);
 
-    let assignedRole: any = 'EDITOR';
+    let assignedRole: UserRole = 'VIEWER';
     let displayName = user.name || userEmail.split('@')[0];
 
     if (foundUser) {
@@ -216,9 +216,9 @@ export default function App() {
     } else if (userEmail === 'caobv.europipe@gmail.com' || userEmail === 'admin@system.local') {
       assignedRole = 'ADMIN';
     } else {
-      assignedRole = user.role || 'EDITOR';
+      // Nếu email hoàn toàn mới chưa được Admin cấp quyền trong Bảng Phân Quyền -> Mặc định là VIEWER (Chỉ xem)
+      assignedRole = 'VIEWER';
     }
-
 
     const updatedUserObj: AppUser = {
       id: foundUser ? foundUser.id : `usr-${Date.now()}`,
@@ -229,6 +229,7 @@ export default function App() {
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
     };
+
 
     localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_TOKEN, user.token);
     localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_USER, JSON.stringify(updatedUserObj));

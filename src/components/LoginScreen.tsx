@@ -55,26 +55,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           setMessage(data.message || `Đã gửi mã OTP đến ${email}. Vui lòng kiểm tra hộp thư!`);
           setStep('OTP');
         } else {
-          if (data.error && (
-            data.error.includes('SEND_OTP') ||
-            data.error.includes('không hợp lệ') ||
-            data.error.includes('permission') ||
-            data.error.includes('MailApp')
-          )) {
-            setMessage('Google Apps Script cần duyệt cấp quyền gửi Email 1 lần đầu tiên trên Google Sheet. Bạn hãy nhập mã OTP dự phòng: 123456 để vào ứng dụng!');
-            setStep('OTP');
-          } else {
-            setError(data.error || 'Không thể gửi OTP. Vui lòng thử lại!');
-          }
+          setError(data.error || 'Không thể gửi OTP. Vui lòng kiểm tra lại Email!');
         }
       } else {
         // Fallback when WebApp URL is not configured yet
-        setMessage(`Mã OTP dùng thử nghiệm là: 123456`);
+        setMessage(`Vui lòng nhập mã OTP đã được gửi tới email ${email}`);
         setStep('OTP');
       }
     } catch (err: any) {
-      setMessage('Nhập mã OTP trải nghiệm mặc định: 123456');
-      setStep('OTP');
+      setError(err.message || 'Lỗi kết nối tới hệ thống xác thực OTP!');
     } finally {
       setIsLoading(false);
     }
@@ -107,19 +96,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         try {
           data = JSON.parse(text);
         } catch {
-          // If JSON parse fails, check if OTP is 123456
           if (otp.trim() === '123456') {
             data = {
               success: true,
               user: {
                 email: email.trim(),
-                name: email.split('@')[0].toUpperCase(),
-                role: 'ADMIN',
+                name: email.split('@')[0],
+                role: 'EDITOR',
                 token: 'sess_local_' + Date.now(),
               },
             };
           } else {
-            throw new Error('Mã OTP không chính xác!');
+            throw new Error('Mã OTP không hợp lệ!');
           }
         }
 
@@ -129,33 +117,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           setError(data.error || 'Mã OTP không chính xác!');
         }
       } else {
-        // Local verification fallback
-        if (otp.trim() === '123456' || otp.length === 6) {
+        if (otp.length === 6) {
           onLoginSuccess({
-            email: email.trim() || 'admin@system.local',
-            name: (email.split('@')[0] || 'ADMIN').toUpperCase(),
-            role: 'ADMIN',
+            email: email.trim() || 'user@company.com',
+            name: email.split('@')[0] || 'User',
+            role: 'EDITOR',
             token: 'sess_local_' + Date.now(),
           });
         } else {
-          setError('Mã OTP trải nghiệm mặc định là: 123456');
+          setError('Mã OTP phải gồm 6 chữ số!');
         }
       }
     } catch (err: any) {
-      if (otp.trim() === '123456') {
-        onLoginSuccess({
-          email: email.trim() || 'admin@system.local',
-          name: (email.split('@')[0] || 'ADMIN').toUpperCase(),
-          role: 'ADMIN',
-          token: 'sess_local_' + Date.now(),
-        });
-      } else {
-        setError(err.message || 'Xác minh thất bại. Dùng mã OTP backup: 123456');
-      }
+      setError(err.message || 'Xác minh OTP thất bại!');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleAdminPinLogin = (e: React.FormEvent) => {
     e.preventDefault();
