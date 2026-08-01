@@ -189,6 +189,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 </>
               )}
             </button>
+
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => setStep('ADMIN_PIN')}
+                className="text-xs text-slate-400 hover:text-amber-400 transition-colors underline"
+              >
+                Đăng nhập nhanh bằng Mã PIN Admin
+              </button>
+            </div>
           </form>
         )}
 
@@ -248,7 +258,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </label>
               <input
                 type="password"
-                placeholder="VD: 123456..."
+                placeholder="VD: A12b34D56..."
                 value={adminInputPin}
                 onChange={(e) => setAdminInputPin(e.target.value)}
                 required
