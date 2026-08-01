@@ -11,7 +11,7 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   gasWebappUrl,
   onLoginSuccess,
-  adminPin = '123456',
+  adminPin = 'A12b34D56',
 }) => {
   const [step, setStep] = useState<'EMAIL' | 'OTP' | 'ADMIN_PIN'>('EMAIL');
   const [email, setEmail] = useState('');

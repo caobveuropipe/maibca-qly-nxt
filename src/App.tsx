@@ -230,7 +230,7 @@ export default function App() {
       id: foundUser ? foundUser.id : `usr-${Date.now()}`,
       email: userEmail,
       name: displayName,
-      pin: '123456',
+      pin: 'A12b34D56',
       role: assignedRole,
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),

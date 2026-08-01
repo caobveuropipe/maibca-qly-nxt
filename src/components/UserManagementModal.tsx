@@ -62,7 +62,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       {
         email: email.trim().toLowerCase(),
         name: name.trim(),
-        pin: '123456',
+        pin: 'A12b34D56',
         role,
         status,
       },

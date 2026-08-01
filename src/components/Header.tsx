@@ -74,9 +74,9 @@ export const Header: React.FC<HeaderProps> = ({
   const handleSwitchRole = (role: UserRole) => {
     setPinError('');
     if (role === 'ADMIN' && currentRole !== 'ADMIN') {
-      const correctPin = googleConfig.adminPin || '123456';
+      const correctPin = googleConfig.adminPin || 'A12b34D56';
       if (inputPin !== correctPin) {
-        setPinError('Mã PIN Admin không đúng (Mặc định: 123456)');
+        setPinError('Mã PIN Admin không đúng (Mặc định: A12b34D56)');
         return;
       }
     }
@@ -398,7 +398,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </label>
                 <input
                   type="password"
-                  placeholder="Mã PIN Admin (Mặc định: 123456)"
+                  placeholder="Mã PIN Admin (Mặc định: A12b34D56)"
                   value={inputPin}
                   onChange={(e) => setInputPin(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-xs font-mono font-bold text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500"

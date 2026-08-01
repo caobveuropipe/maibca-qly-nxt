@@ -12,7 +12,7 @@
  */
 
 // Secret PIN / Auth Token để bảo mật WebApp API (Bạn có thể đổi PIN này)
-const DEFAULT_AUTH_PIN = "123456";
+const DEFAULT_AUTH_PIN = "A12b34D56";
 
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
