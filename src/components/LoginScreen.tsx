@@ -131,7 +131,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         token: 'sess_admin_pin_' + Date.now(),
       });
     } else {
-      setError(`Mã PIN Admin không đúng (Mặc định: ${adminPin})`);
+      setError('Mã PIN Admin không chính xác. Vui lòng thử lại!');
     }
   };
 
@@ -274,7 +274,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </label>
               <input
                 type="password"
-                placeholder="VD: A12b34D56..."
+                placeholder="Nhập mã PIN Admin..."
                 value={adminInputPin}
                 onChange={(e) => setAdminInputPin(e.target.value)}
                 required
