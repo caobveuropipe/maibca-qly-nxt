@@ -119,6 +119,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
   };
 
+  const handleAdminPinLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (adminInputPin.trim() === adminPin) {
+      onLoginSuccess({
+        email: 'admin@system.local',
+        name: 'Admin Quản Trị',
+        role: 'ADMIN',
+        token: 'sess_admin_pin_' + Date.now(),
+      });
+    } else {
+      setError(`Mã PIN Admin không đúng (Mặc định: ${adminPin})`);
+    }
+  };
+
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4 selection:bg-blue-500 selection:text-white font-sans">
