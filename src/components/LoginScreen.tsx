@@ -47,8 +47,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         let data: any;
         try {
           data = JSON.parse(text);
-        } catch {
-          throw new Error('Ứng dụng không thể đọc phản hồi từ Google Apps Script. Hãy nhập mã OTP 123456 để thử nghiệm!');
+        } catch (jsonErr) {
+          console.error('[Apps Script Response Text]:', text);
+          throw new Error(`Ứng dụng nhận phản hồi lỗi từ Google: ${text.substring(0, 150)}... Hãy chắc chắn bạn đã Deploy Web App ở chế độ "Bất kỳ ai" (Anyone).`);
         }
 
         if (data.success) {
@@ -99,7 +100,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         let data: any;
         try {
           data = JSON.parse(text);
-        } catch {
+        } catch (jsonErr) {
+          console.error('[Apps Script Verify Response Text]:', text);
           if (otp.trim() === '123456') {
             data = {
               success: true,
@@ -111,7 +113,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               }
             };
           } else {
-            throw new Error('Mã OTP hoặc định dạng phản hồi không hợp lệ!');
+            throw new Error(`Xác minh thất bại. Phản hồi từ Google: ${text.substring(0, 150)}...`);
           }
         }
 
