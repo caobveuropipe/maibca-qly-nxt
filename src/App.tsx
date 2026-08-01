@@ -341,11 +341,13 @@ export default function App() {
           users: updatedUsers,
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gasUrl: googleConfig.gasWebappUrl,
+            payload: payload
+          }),
         });
 
         const text = await res.text();
@@ -394,11 +396,13 @@ export default function App() {
           pin: googleConfig.gasPin || '123456',
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gasUrl: googleConfig.gasWebappUrl,
+            payload: payload
+          }),
         });
 
         const text = await res.text();
@@ -747,11 +751,13 @@ export default function App() {
           users,
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gasUrl: googleConfig.gasWebappUrl,
+            payload: payload
+          }),
         });
 
         const text = await res.text();
@@ -805,11 +811,13 @@ export default function App() {
           pin: googleConfig.gasPin || '123456',
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gasUrl: googleConfig.gasWebappUrl,
+            payload: payload
+          }),
         });
 
         const text = await res.text();

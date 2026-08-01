@@ -36,11 +36,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     try {
       if (gasWebappUrl && gasWebappUrl.startsWith('http')) {
         const payload = { action: 'SEND_OTP', email: email.trim() };
-        const res = await fetch(gasWebappUrl, {
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gasUrl: gasWebappUrl,
+            payload: payload
+          }),
         });
 
         const text = await res.text();
@@ -89,11 +91,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     try {
       if (gasWebappUrl && gasWebappUrl.startsWith('http')) {
         const payload = { action: 'VERIFY_OTP', email: email.trim(), otp: otp.trim() };
-        const res = await fetch(gasWebappUrl, {
+        const res = await fetch('/api/gas-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gasUrl: gasWebappUrl,
+            payload: payload
+          }),
         });
 
         const text = await res.text();
