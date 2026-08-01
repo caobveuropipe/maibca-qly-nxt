@@ -341,13 +341,11 @@ export default function App() {
           users: updatedUsers,
         };
 
-        const res = await fetch('/api/gas-proxy', {
+        const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            gasUrl: googleConfig.gasWebappUrl,
-            payload: payload
-          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
         });
 
         const text = await res.text();
@@ -396,13 +394,11 @@ export default function App() {
           pin: googleConfig.gasPin || '123456',
         };
 
-        const res = await fetch('/api/gas-proxy', {
+        const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            gasUrl: googleConfig.gasWebappUrl,
-            payload: payload
-          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
         });
 
         const text = await res.text();
@@ -751,13 +747,11 @@ export default function App() {
           users,
         };
 
-        const res = await fetch('/api/gas-proxy', {
+        const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            gasUrl: googleConfig.gasWebappUrl,
-            payload: payload
-          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
         });
 
         const text = await res.text();
@@ -811,13 +805,11 @@ export default function App() {
           pin: googleConfig.gasPin || '123456',
         };
 
-        const res = await fetch('/api/gas-proxy', {
+        const res = await fetch(googleConfig.gasWebappUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            gasUrl: googleConfig.gasWebappUrl,
-            payload: payload
-          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
         });
 
         const text = await res.text();
