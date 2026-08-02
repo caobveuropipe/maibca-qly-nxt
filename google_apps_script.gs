@@ -38,7 +38,10 @@ function doPost(e) {
     }
 
     if (action === "GET_ACTIVE_USER") {
-      var activeEmail = Session.getActiveUser().getEmail() || "admin@system.local";
+      var activeEmail = (Session.getActiveUser().getEmail() || "").trim().toLowerCase();
+      if (!activeEmail) {
+        return responseJSON({ success: false, requireLogin: true, error: "Không thể tự động đọc Email từ Google Session." });
+      }
       return responseJSON({ success: true, email: activeEmail });
     }
 
