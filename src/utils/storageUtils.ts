@@ -222,8 +222,8 @@ export const loadInitialState = () => {
     if (savedConfig) {
       const parsed = JSON.parse(savedConfig);
       let loadedUrl = parsed.gasWebappUrl || googleConfig.gasWebappUrl;
-      if (loadedUrl && loadedUrl.includes('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw')) {
-        loadedUrl = loadedUrl.replace('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw', 'pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw');
+      if (loadedUrl && loadedUrl.includes('pYSSIB')) {
+        loadedUrl = loadedUrl.replace('pYSSIB', 'pYSSlB');
         parsed.gasWebappUrl = loadedUrl;
         localStorage.setItem(LOCAL_STORAGE_KEY_GOOGLE_CONFIG, JSON.stringify(parsed));
       }

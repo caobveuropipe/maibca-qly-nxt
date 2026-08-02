@@ -290,8 +290,8 @@ export default function App() {
 
     if (gasUrlParam && gasUrlParam.trim().startsWith('http')) {
       let sanitizedUrl = gasUrlParam.trim();
-      if (sanitizedUrl.includes('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw')) {
-        sanitizedUrl = sanitizedUrl.replace('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw', 'pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw');
+      if (sanitizedUrl.includes('pYSSIB')) {
+        sanitizedUrl = sanitizedUrl.replace('pYSSIB', 'pYSSlB');
       }
       updatedConfig.gasWebappUrl = sanitizedUrl;
       hasUrlUpdate = true;
