@@ -884,6 +884,7 @@ export default function App() {
         gasWebappUrl={googleConfig.gasWebappUrl}
         onLoginSuccess={handleLoginSuccess}
         adminPin={googleConfig.adminPin}
+        onUpdateGasUrl={(url) => updateGoogleConfig({ ...googleConfig, gasWebappUrl: url })}
       />
     );
   }

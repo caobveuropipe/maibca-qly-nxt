@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Mail, KeyRound, ArrowRight, Boxes, CheckCircle2, AlertCircle, RefreshCw, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, KeyRound, ArrowRight, Boxes, CheckCircle2, AlertCircle, RefreshCw, Lock, Settings } from 'lucide-react';
 import { UserRole } from '../types';
 import { callGasProxy } from '../utils/gasProxy';
 
@@ -7,12 +7,14 @@ interface LoginScreenProps {
   gasWebappUrl: string;
   onLoginSuccess: (user: { email: string; name: string; role: UserRole; token: string }) => void;
   adminPin?: string;
+  onUpdateGasUrl?: (url: string) => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   gasWebappUrl,
   onLoginSuccess,
   adminPin = 'A12b34D56',
+  onUpdateGasUrl,
 }) => {
   const [step, setStep] = useState<'EMAIL' | 'OTP' | 'ADMIN_PIN'>('EMAIL');
   const [email, setEmail] = useState('');
@@ -21,6 +23,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [showConfig, setShowConfig] = useState(false);
+  const [inputGasUrl, setInputGasUrl] = useState(gasWebappUrl);
+
+  useEffect(() => {
+    setInputGasUrl(gasWebappUrl);
+  }, [gasWebappUrl]);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,6 +300,66 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </div>
           </form>
         )}
+
+        {/* Advanced Config Section */}
+        <div className="mt-8 pt-4 border-t border-slate-800">
+          <button
+            type="button"
+            onClick={() => setShowConfig(!showConfig)}
+            className="w-full text-center text-xs text-slate-500 hover:text-slate-400 flex items-center justify-center gap-1 transition-colors"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            {showConfig ? 'Ẩn cấu hình kết nối Google Sheet' : 'Cấu hình kết nối Google Sheet (Nâng cao)'}
+          </button>
+
+          {showConfig && (
+            <div className="mt-4 p-3 bg-slate-800/50 border border-slate-800 rounded-xl space-y-3">
+              <div className="space-y-1 text-left">
+                <label className="block text-[11px] font-semibold text-slate-400">
+                  Google Apps Script WebApp URL:
+                </label>
+                <textarea
+                  rows={2}
+                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-mono text-slate-300 outline-none focus:ring-1 focus:ring-amber-500"
+                  value={inputGasUrl}
+                  onChange={(e) => setInputGasUrl(e.target.value.trim())}
+                  placeholder="Dán URL Web App (kết thúc bằng /exec)..."
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onUpdateGasUrl) {
+                      onUpdateGasUrl(inputGasUrl);
+                      setMessage('Đã lưu cấu hình URL mới!');
+                      setError('');
+                    }
+                  }}
+                  className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
+                >
+                  Lưu Cấu Hình
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const defaultUrl = 'https://script.google.com/macros/s/AKfycbzNuC3kUO_pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw/exec';
+                    setInputGasUrl(defaultUrl);
+                    if (onUpdateGasUrl) {
+                      onUpdateGasUrl(defaultUrl);
+                      setMessage('Đã khôi phục URL mặc định hệ thống!');
+                      setError('');
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-[11px] rounded-lg transition-colors cursor-pointer"
+                >
+                  Mặc Định
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
       </div>
     </div>
