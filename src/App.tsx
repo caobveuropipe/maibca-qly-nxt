@@ -342,8 +342,12 @@ export default function App() {
         const result = await callGasProxy('', { action: 'GET_ACTIVE_USER' });
 
         if (!result?.success || !result?.email) {
-          // Cannot read email automatically -> Stop initialization and let user use login screen
+          // Cannot read email automatically -> Clear any stale session & force Login Screen
           console.warn('Cannot read active Google email automatically:', result?.error);
+          localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_TOKEN);
+          localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_USER);
+          setIsAuthenticated(false);
+          setSessionUser(null);
           setIsInitializingGas(false);
           return;
         }
