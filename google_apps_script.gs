@@ -15,11 +15,10 @@
 const DEFAULT_AUTH_PIN = "A12b34D56";
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
-    status: "ok",
-    message: "Google Apps Script NXT API Ready",
-    timestamp: new Date().toISOString()
-  })).setMimeType(ContentService.MimeType.JSON);
+  return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('Quản Lý Nhập Xuất Tồn Kho (IMS PRO)')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
 function doPost(e) {
@@ -36,6 +35,11 @@ function doPost(e) {
     // 1. Kiểm tra PIN bảo mật (nếu người dùng có cài đặt PIN)
     if (data.requirePinCheck && pin !== DEFAULT_AUTH_PIN) {
       return responseJSON({ success: false, error: "Mã PIN xác thực không chính xác!" });
+    }
+
+    if (action === "GET_ACTIVE_USER") {
+      var activeEmail = Session.getActiveUser().getEmail() || "admin@system.local";
+      return responseJSON({ success: true, email: activeEmail });
     }
 
     if (action === "PING") {
@@ -568,5 +572,27 @@ function testSendMail() {
   var userEmail = Session.getActiveUser().getEmail() || "admin@system.local";
   MailApp.sendEmail(userEmail, "[IMS PRO] Cấp Quyền Gửi OTP Thành Công", "Cấu hình cấp quyền gửi Email OTP cho Google Apps Script đã hoàn tất thành công!");
   Logger.log("Đã gửi mail cấp quyền thành công đến: " + userEmail);
+}
+
+// --------------------------------------------------------
+// HÀM CHẠY TRỰC TIẾP TỪ FRONTEND (google.script.run)
+// --------------------------------------------------------
+function executeGasAction(payloadStr) {
+  try {
+    var payload = JSON.parse(payloadStr);
+    
+    // Tạo cấu trúc sự kiện giả lập tương tự doPost
+    var mockEvent = {
+      postData: {
+        contents: payloadStr
+      }
+    };
+    
+    // Gọi trực tiếp doPost
+    var textOutput = doPost(mockEvent);
+    return textOutput.getContent();
+  } catch (e) {
+    return JSON.stringify({ success: false, error: e.toString() });
+  }
 }
 
