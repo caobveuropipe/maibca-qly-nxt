@@ -221,11 +221,17 @@ export const loadInitialState = () => {
     const savedConfig = localStorage.getItem(LOCAL_STORAGE_KEY_GOOGLE_CONFIG);
     if (savedConfig) {
       const parsed = JSON.parse(savedConfig);
+      let loadedUrl = parsed.gasWebappUrl || googleConfig.gasWebappUrl;
+      if (loadedUrl && loadedUrl.includes('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw')) {
+        loadedUrl = loadedUrl.replace('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw', 'pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw');
+        parsed.gasWebappUrl = loadedUrl;
+        localStorage.setItem(LOCAL_STORAGE_KEY_GOOGLE_CONFIG, JSON.stringify(parsed));
+      }
       // Merge with default to ensure gasWebappUrl is always populated from code default
       googleConfig = {
         ...googleConfig,
         ...parsed,
-        gasWebappUrl: parsed.gasWebappUrl || googleConfig.gasWebappUrl,
+        gasWebappUrl: loadedUrl,
       };
     }
   } catch (e) {

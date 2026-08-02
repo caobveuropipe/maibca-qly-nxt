@@ -281,7 +281,11 @@ export default function App() {
     let hasUrlUpdate = false;
 
     if (gasUrlParam && gasUrlParam.trim().startsWith('http')) {
-      updatedConfig.gasWebappUrl = gasUrlParam.trim();
+      let sanitizedUrl = gasUrlParam.trim();
+      if (sanitizedUrl.includes('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw')) {
+        sanitizedUrl = sanitizedUrl.replace('pYSSIB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw', 'pYSSlB5XMUoIttKZoZo42dxxZKhf_Mg6j9tlbGpteqkG_-ZiBTQvZig0qmw');
+      }
+      updatedConfig.gasWebappUrl = sanitizedUrl;
       hasUrlUpdate = true;
     }
 
