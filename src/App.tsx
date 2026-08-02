@@ -91,6 +91,7 @@ export default function App() {
 
   // GAS Context state
   const [isInitializingGas, setIsInitializingGas] = useState<boolean>(IS_GAS_CONTEXT);
+  const [accessDeniedEmail, setAccessDeniedEmail] = useState<string | null>(null);
 
   // State
   const [activeTab, setActiveTab] = useState<ActiveTab>('reports');
@@ -357,7 +358,12 @@ export default function App() {
         const matched = currentUsers.find((u) => u.email.trim().toLowerCase() === gmail);
 
         if (!matched) {
-          alert(`Email (${gmail}) chưa được cấp quyền trong Bảng Phân Quyền. Vui lòng liên hệ Admin!`);
+          // Email is read from Google but NOT authorized in Bảng Phân Quyền -> Block WebApp completely!
+          localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_TOKEN);
+          localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_USER);
+          setIsAuthenticated(false);
+          setSessionUser(null);
+          setAccessDeniedEmail(gmail);
           setIsInitializingGas(false);
           return;
         }
@@ -824,7 +830,7 @@ export default function App() {
   };
 
 
-  // GAS: Show loading screen while resolving active user from Google
+  // 1. GAS Loading Screen
   if (IS_GAS_CONTEXT && isInitializingGas) {
     return (
       <div className="w-full min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white gap-4">
@@ -835,8 +841,36 @@ export default function App() {
     );
   }
 
-  // If not authenticated and not in GAS, render full-screen mandatory Email OTP Login Screen
-  if (!isAuthenticated && !IS_GAS_CONTEXT) {
+  // 2. Access Denied Screen: If Email is read but NOT authorized in Bảng Phân Quyền -> Block WebApp 100%!
+  if (accessDeniedEmail) {
+    return (
+      <div className="w-full min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-6 text-center">
+        <div className="max-w-md bg-slate-900 border border-red-500/30 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-5">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+            <Shield className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-red-400">Từ Chối Truy Cập</h2>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            Tài khoản Email <span className="font-mono text-emerald-400 font-semibold px-2.5 py-1 bg-slate-800 rounded border border-slate-700">{accessDeniedEmail}</span> chưa được cấp quyền sử dụng hệ thống.
+          </p>
+          <div className="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 text-xs text-slate-400 text-left space-y-1.5">
+            <p className="font-semibold text-slate-300">Hướng dẫn khắc phục:</p>
+            <p>1. Liên hệ với Quản trị viên (Admin) của hệ thống.</p>
+            <p>2. Yêu cầu thêm Email của bạn vào <span className="text-amber-400 font-medium">"Bảng Phân Quyền"</span> trên Google Sheet.</p>
+          </div>
+          <button
+            onClick={() => { setAccessDeniedEmail(null); setIsAuthenticated(false); }}
+            className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl transition border border-slate-700 text-sm"
+          >
+            Đăng Nhập Bằng Mã OTP / Email Khác
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Render Login Screen if not authenticated (Blocks WebApp completely)
+  if (!isAuthenticated) {
     return (
       <LoginScreen
         gasWebappUrl={googleConfig.gasWebappUrl}
