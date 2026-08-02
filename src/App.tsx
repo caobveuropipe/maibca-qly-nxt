@@ -330,7 +330,7 @@ export default function App() {
     setPartners(pt);
   }, []);
 
-  // GAS Auto-Login: when inside GAS iframe, try reading active user email, otherwise show login screen
+  // GAS Auto-Login: when inside GAS iframe, try reading active user email, pull fresh Sheet data first, then match user
   useEffect(() => {
     if (!IS_GAS_CONTEXT) return;
 
@@ -340,11 +340,11 @@ export default function App() {
         setProducts(p); setWarehouses(w); setTransactions(t); setPartners(pt);
 
         const { callGasProxy } = await import('./utils/gasProxy');
-        const result = await callGasProxy('', { action: 'GET_ACTIVE_USER' });
 
-        if (!result?.success || !result?.email) {
-          // Cannot read email automatically -> Clear any stale session & force Login Screen
-          console.warn('Cannot read active Google email automatically:', result?.error);
+        // 1. Fetch active Gmail from GAS Session
+        const userRes = await callGasProxy('', { action: 'GET_ACTIVE_USER' });
+        if (!userRes?.success || !userRes?.email) {
+          console.warn('Cannot read active Google email automatically:', userRes?.error);
           localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_TOKEN);
           localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_USER);
           setIsAuthenticated(false);
@@ -353,9 +353,30 @@ export default function App() {
           return;
         }
 
-        const gmail = result.email.trim().toLowerCase();
-        const currentUsers = loadAppUsers();
-        const matched = currentUsers.find((u) => u.email.trim().toLowerCase() === gmail);
+        const gmail = userRes.email.trim().toLowerCase();
+
+        // 2. Fetch fresh users & data directly from Google Sheet first to ensure newly added permissions are loaded
+        let freshUsers = loadAppUsers();
+        try {
+          const syncRes = await callGasProxy('', { action: 'SYNC_DOWN', pin: googleConfig.gasPin || '123456' });
+          if (syncRes?.success && syncRes?.data) {
+            if (syncRes.data.users && syncRes.data.users.length > 0) {
+              freshUsers = syncRes.data.users;
+              setUsers(freshUsers);
+              saveAppUsersToLocal(freshUsers);
+            }
+            if (syncRes.data.products) { setProducts(syncRes.data.products); saveProductsToLocal(syncRes.data.products); }
+            if (syncRes.data.warehouses) { setWarehouses(syncRes.data.warehouses); saveWarehousesToLocal(syncRes.data.warehouses); }
+            if (syncRes.data.transactions) { setTransactions(syncRes.data.transactions); saveTransactionsToLocal(syncRes.data.transactions); }
+            if (syncRes.data.partners) { setPartners(syncRes.data.partners); savePartnersToLocal(syncRes.data.partners); }
+            if (syncRes.data.categories) { setCategories(syncRes.data.categories); saveCategoriesToLocal(syncRes.data.categories); }
+          }
+        } catch (e) {
+          console.warn('Initial SYNC_DOWN failed, fallback to local users:', e);
+        }
+
+        // 3. Match active Gmail against fresh users from Sheet
+        const matched = freshUsers.find((u) => u.email.trim().toLowerCase() === gmail);
 
         if (!matched) {
           // Email is read from Google but NOT authorized in Bảng Phân Quyền -> Block WebApp completely!
@@ -368,6 +389,7 @@ export default function App() {
           return;
         }
 
+        // Auto-login succeeded!
         const token = `gas-auto-${Date.now()}`;
         localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_TOKEN, token);
         localStorage.setItem(LOCAL_STORAGE_KEY_AUTH_USER, JSON.stringify(matched));
@@ -375,6 +397,7 @@ export default function App() {
         setSessionUser(matched);
         setCurrentUser(matched);
         saveCurrentUserToLocal(matched);
+        setAccessDeniedEmail(null);
       } catch (err) {
         console.warn('Initial GAS auto-login error:', err);
       } finally {
@@ -531,7 +554,7 @@ export default function App() {
       } finally {
         isAutoSyncingRef.current = false;
       }
-    }, 30000);
+    }, 8000);
 
     return () => clearInterval(interval);
   }, [googleConfig.autoSync, googleConfig.gasWebappUrl]);
