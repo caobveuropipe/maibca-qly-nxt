@@ -320,7 +320,8 @@ export default function App() {
     updatedWarehouses = warehouses,
     updatedTransactions = transactions,
     updatedPartners = partners,
-    updatedUsers = users
+    updatedUsers = users,
+    updatedCategories = categories
   ) => {
     if (!googleConfig.autoSync || !googleConfig.gasWebappUrl || isAutoSyncingRef.current) {
       return;
@@ -344,6 +345,7 @@ export default function App() {
           transactions: updatedTransactions,
           partners: updatedPartners,
           users: updatedUsers,
+          categories: updatedCategories,
         };
 
         const data = await callGasProxy(googleConfig.gasWebappUrl, payload);
@@ -430,6 +432,10 @@ export default function App() {
               updateGoogleConfig({ ...googleConfig, userRole: matchedActiveUser.role });
             }
           }
+          if (data.data.categories && data.data.categories.length >= 0) {
+            setCategories(data.data.categories);
+            saveCategoriesToLocal(data.data.categories);
+          }
 
           const timeStr = new Date().toLocaleTimeString('vi-VN');
           setSyncMessage(`⚡ [Realtime] Đã tự động làm mới dữ liệu từ Google Sheet lúc ${timeStr}!`);
@@ -478,6 +484,7 @@ export default function App() {
   const updateCategories = (newCategories: string[]) => {
     setCategories(newCategories);
     saveCategoriesToLocal(newCategories);
+    triggerAutoPush(products, warehouses, transactions, partners, users, newCategories);
   };
 
   // Transaction Handlers
@@ -733,12 +740,13 @@ export default function App() {
           transactions,
           partners,
           users,
+          categories,
         };
 
         const data = await callGasProxy(googleConfig.gasWebappUrl, payload);
 
         if (data.success) {
-          setSyncMessage(data.message || `Đã đồng bộ ${products.length} SP, ${transactions.length} phiếu và ${users.length} tài khoản!`);
+          setSyncMessage(data.message || `Đã đồng bộ ${products.length} SP, ${transactions.length} phiếu, ${users.length} tài khoản và ${categories.length} nhóm hàng!`);
           updateGoogleConfig({
             ...googleConfig,
             lastSyncedAt: new Date().toLocaleTimeString('vi-VN'),
@@ -798,6 +806,9 @@ export default function App() {
           if (data.data.users && data.data.users.length >= 0) {
             setUsers(data.data.users);
             saveAppUsersToLocal(data.data.users);
+          }
+          if (data.data.categories && data.data.categories.length >= 0) {
+            updateCategories(data.data.categories);
           }
 
 

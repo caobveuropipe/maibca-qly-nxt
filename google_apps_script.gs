@@ -234,12 +234,24 @@ function doPost(e) {
       });
       updateSheetData(ss, "PHAN_QUYEN", userRows);
 
+      // Ghi DANH_MUC_NHOM_HANG
+      var categories = data.categories || [];
+      var catRows = [
+        ["Tên Nhóm Hàng (*)"]
+      ];
+      categories.forEach(function(c) {
+        if (c && c.trim()) {
+          catRows.push([c.trim()]);
+        }
+      });
+      updateSheetData(ss, "DANH_MUC_NHOM_HANG", catRows);
+
       // Ghi Nhật Ký
-      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu, " + partners.length + " đối tác, " + users.length + " tài khoản");
+      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu, " + partners.length + " đối tác, " + users.length + " tài khoản, " + categories.length + " nhóm hàng");
 
       return responseJSON({
         success: true,
-        message: "Đã đồng bộ " + products.length + " sản phẩm, " + transactions.length + " phiếu, " + partners.length + " đối tác và " + users.length + " tài khoản phân quyền lên Google Sheet!"
+        message: "Đã đồng bộ " + products.length + " sản phẩm, " + transactions.length + " phiếu, " + partners.length + " đối tác, " + users.length + " tài khoản và " + categories.length + " nhóm hàng lên Google Sheet!"
       });
     }
 
@@ -397,7 +409,18 @@ function doPost(e) {
         });
       }
 
-      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu, " + partnersList.length + " đối tác, " + usersList.length + " tài khoản");
+      // Đọc DANH_MUC_NHOM_HANG
+      var catSheet = ss.getSheetByName("DANH_MUC_NHOM_HANG");
+      var catData = catSheet ? catSheet.getDataRange().getValues() : [];
+      var categoriesList = [];
+      for (var cIdx = 1; cIdx < catData.length; cIdx++) {
+        var cVal = String(catData[cIdx][0] || "").trim();
+        if (cVal) {
+          categoriesList.push(cVal);
+        }
+      }
+
+      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu, " + partnersList.length + " đối tác, " + usersList.length + " tài khoản, " + categoriesList.length + " nhóm hàng");
 
       return responseJSON({
         success: true,
@@ -406,7 +429,8 @@ function doPost(e) {
           products: productsList,
           transactions: transactionsList,
           partners: partnersList,
-          users: usersList
+          users: usersList,
+          categories: categoriesList
         }
       });
 
@@ -471,6 +495,13 @@ function ensureSheetsExist(ss) {
     var sh = ss.insertSheet("DOI_TAC");
     sh.appendRow(["ID (Hệ Thống)", "Mã Đối Tác (*)", "Tên Đối Tác (*)", "Loại (NHA_CUNG_CAP/KHACH_HANG)", "Số Điện Thoại", "Địa Chỉ", "Ghi Chú"]);
     formatHeader(sh, 7);
+  }
+
+  // 7. Tạo sheet DANH_MUC_NHOM_HANG (Đồng bộ nhóm hàng)
+  if (!ss.getSheetByName("DANH_MUC_NHOM_HANG")) {
+    var sh = ss.insertSheet("DANH_MUC_NHOM_HANG");
+    sh.appendRow(["Tên Nhóm Hàng (*)"]);
+    formatHeader(sh, 1);
   }
 }
 
