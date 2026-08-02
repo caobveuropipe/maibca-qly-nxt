@@ -107,6 +107,14 @@ export default function App() {
   const autoSyncDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const isAutoSyncingRef = useRef(false);
 
+  // Latest refs to prevent interval recreation and stale closures
+  const googleConfigRef = useRef(googleConfig);
+  googleConfigRef.current = googleConfig;
+  const currentUserRef = useRef(currentUser);
+  currentUserRef.current = currentUser;
+  const isSyncingRef = useRef(isSyncing);
+  isSyncingRef.current = isSyncing;
+
   // Modals
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [transactionType, setTransactionType] = useState<TransactionType>('IMPORT');
@@ -383,18 +391,21 @@ export default function App() {
     }
 
     const interval = setInterval(async () => {
-      if (isSyncing || isAutoSyncingRef.current) return;
+      if (isSyncingRef.current || isAutoSyncingRef.current) return;
       isAutoSyncingRef.current = true;
 
       try {
+        const currentConf = googleConfigRef.current;
+        const currentUsr = currentUserRef.current;
+
         const payload = {
           action: 'SYNC_DOWN',
-          pin: googleConfig.gasPin || '123456',
+          pin: currentConf.gasPin || '123456',
         };
 
         let data: any;
         try {
-          data = await callGasProxy(googleConfig.gasWebappUrl, payload);
+          data = await callGasProxy(currentConf.gasWebappUrl, payload);
         } catch {
           return;
         }
@@ -421,15 +432,15 @@ export default function App() {
             saveAppUsersToLocal(data.data.users);
 
             // Re-evaluate current logged-in user's role from newly pulled users list
-            const activeUserEmail = (currentUser?.email || '').trim().toLowerCase();
+            const activeUserEmail = (currentUsr?.email || '').trim().toLowerCase();
             const matchedActiveUser = data.data.users.find(
               (u: AppUser) => u.email.trim().toLowerCase() === activeUserEmail
             );
-            if (matchedActiveUser && matchedActiveUser.role !== currentUser?.role) {
-              const updatedCurrUser = { ...currentUser, role: matchedActiveUser.role };
+            if (matchedActiveUser && matchedActiveUser.role !== currentUsr?.role) {
+              const updatedCurrUser = { ...currentUsr, role: matchedActiveUser.role };
               setCurrentUser(updatedCurrUser);
               saveCurrentUserToLocal(updatedCurrUser);
-              updateGoogleConfig({ ...googleConfig, userRole: matchedActiveUser.role });
+              updateGoogleConfig({ ...currentConf, userRole: matchedActiveUser.role });
             }
           }
           if (data.data.categories && data.data.categories.length >= 0) {
@@ -440,9 +451,8 @@ export default function App() {
           const timeStr = new Date().toLocaleTimeString('vi-VN');
           setSyncMessage(`⚡ [Realtime] Đã tự động làm mới dữ liệu từ Google Sheet lúc ${timeStr}!`);
 
-
           updateGoogleConfig({
-            ...googleConfig,
+            ...currentConf,
             lastSyncedAt: timeStr,
             syncStatus: 'success',
           });
@@ -455,7 +465,7 @@ export default function App() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [googleConfig.autoSync, googleConfig.gasWebappUrl, isSyncing, googleConfig]);
+  }, [googleConfig.autoSync, googleConfig.gasWebappUrl]);
 
   // Save changes to localStorage & trigger auto push
   const updateProducts = (newProducts: Product[]) => {
