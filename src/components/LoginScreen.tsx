@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, KeyRound, ArrowRight, Boxes, CheckCircle2, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { UserRole } from '../types';
+import { callGasProxy } from '../utils/gasProxy';
 
 interface LoginScreenProps {
   gasWebappUrl: string;
@@ -36,21 +37,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     try {
       if (gasWebappUrl && gasWebappUrl.startsWith('http')) {
         const payload = { action: 'SEND_OTP', email: email.trim() };
-        const res = await fetch(gasWebappUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
-        });
-
-        const text = await res.text();
-        let data: any;
-        try {
-          data = JSON.parse(text);
-        } catch (jsonErr) {
-          console.error('[Apps Script Response Text]:', text);
-          throw new Error(`Ứng dụng nhận phản hồi lỗi từ Google: ${text.substring(0, 150)}... Hãy chắc chắn bạn đã Deploy Web App ở chế độ "Bất kỳ ai" (Anyone).`);
-        }
+        const data = await callGasProxy(gasWebappUrl, payload);
 
         if (data.success) {
           setMessage(data.message || `Đã gửi mã OTP đến ${email}. Vui lòng kiểm tra hộp thư!`);
@@ -89,33 +76,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     try {
       if (gasWebappUrl && gasWebappUrl.startsWith('http')) {
         const payload = { action: 'VERIFY_OTP', email: email.trim(), otp: otp.trim() };
-        const res = await fetch(gasWebappUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
-        });
-
-        const text = await res.text();
-        let data: any;
-        try {
-          data = JSON.parse(text);
-        } catch (jsonErr) {
-          console.error('[Apps Script Verify Response Text]:', text);
-          if (otp.trim() === '123456') {
-            data = {
-              success: true,
-              user: {
-                email: email.trim(),
-                name: (email.split('@')[0] || 'ADMIN').toUpperCase(),
-                role: 'ADMIN',
-                token: 'sess_local_' + Date.now(),
-              }
-            };
-          } else {
-            throw new Error(`Xác minh thất bại. Phản hồi từ Google: ${text.substring(0, 150)}...`);
-          }
-        }
+        const data = await callGasProxy(gasWebappUrl, payload);
 
         if (data.success && data.user) {
           onLoginSuccess(data.user);

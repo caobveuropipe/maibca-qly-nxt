@@ -47,6 +47,7 @@ import { UserManagementModal } from './components/UserManagementModal';
 import { AccountLoginModal } from './components/AccountLoginModal';
 import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
+import { callGasProxy } from './utils/gasProxy';
 import { PanelLeft, RefreshCw, Zap, Circle, PieChart, Package, Warehouse as WarehouseIcon, ReceiptText, FileSpreadsheet, Settings, Shield, KeyRound, X, UserCheck, Eye } from 'lucide-react';
 
 
@@ -341,19 +342,10 @@ export default function App() {
           users: updatedUsers,
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
-        });
+        const data = await callGasProxy(googleConfig.gasWebappUrl, payload);
 
-        const text = await res.text();
-        let data: any;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          setSyncMessage('⚠️ [Cảnh báo đồng bộ] URL WebApp chưa đúng hoặc chưa kết nối đến Google Sheet của bạn. Vui lòng mở trang Google Sheet -> Tiện ích mở rộng -> Apps Script -> Triển khai (Deploy) Web App ở chế độ "Anyone" và dán URL mới vào đây.');
+        if (!data || data.error) {
+          setSyncMessage(`⚠️ [Cảnh báo đồng bộ] ${data?.error || 'URL WebApp chưa đúng hoặc chưa kết nối đến Google Sheet.'}`);
           updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
           return;
         }
@@ -394,17 +386,9 @@ export default function App() {
           pin: googleConfig.gasPin || '123456',
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
-        });
-
-        const text = await res.text();
         let data: any;
         try {
-          data = JSON.parse(text);
+          data = await callGasProxy(googleConfig.gasWebappUrl, payload);
         } catch {
           return;
         }
@@ -747,20 +731,7 @@ export default function App() {
           users,
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
-        });
-
-        const text = await res.text();
-        let data: any;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error('Không thể đọc dữ liệu trả về từ Google Apps Script WebApp. Vui lòng kiểm tra đã chọn "Anyone" (Bất kỳ ai) khi Deploy WebApp chưa.');
-        }
+        const data = await callGasProxy(googleConfig.gasWebappUrl, payload);
 
         if (data.success) {
           setSyncMessage(data.message || `Đã đồng bộ ${products.length} SP, ${transactions.length} phiếu và ${users.length} tài khoản!`);
@@ -805,20 +776,7 @@ export default function App() {
           pin: googleConfig.gasPin || '123456',
         };
 
-        const res = await fetch(googleConfig.gasWebappUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
-        });
-
-        const text = await res.text();
-        let data: any;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error('Không thể đọc dữ liệu trả về từ Google Apps Script WebApp. Vui lòng kiểm tra đã chọn "Anyone" (Bất kỳ ai) khi Deploy WebApp chưa.');
-        }
+        const data = await callGasProxy(googleConfig.gasWebappUrl, payload);
 
         if (data.success && data.data) {
           if (data.data.products && data.data.products.length >= 0) {
