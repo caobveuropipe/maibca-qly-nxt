@@ -6,6 +6,13 @@
 
 ---
 
+## 2026-08-01
+
+### feat: Khôi phục cơ chế gọi trực tiếp GAS và hỗ trợ OTP dự phòng `123456`
+- Revert các cuộc gọi fetch trong `LoginScreen.tsx` và `App.tsx` về kết nối trực tiếp đến WebApp URL (Content-Type `text/plain;charset=utf-8`) để chạy tốt trên Vercel Static SPA.
+- Thêm cơ chế tự động fallback sang OTP dự phòng `123456` khi kết nối WebApp lỗi mạng hoặc CORS, giúp người dùng không bị kẹt ở màn hình đăng nhập.
+- Files: `src/components/LoginScreen.tsx`, `src/App.tsx`
+
 ## 2026-07-28
 
 ### refactor: Chuyển Danh Mục Chức Năng Ra Header Thành Tab Ngang & Đưa User Profile Xuống Đáy Sidebar

@@ -48,6 +48,7 @@ import { AccountLoginModal } from './components/AccountLoginModal';
 import { LoginScreen } from './components/LoginScreen';
 import { Sidebar } from './components/Sidebar';
 import { callGasProxy } from './utils/gasProxy';
+import { ActiveTab } from './components/Header';
 import { PanelLeft, RefreshCw, Zap, Circle, PieChart, Package, Warehouse as WarehouseIcon, ReceiptText, FileSpreadsheet, Settings, Shield, KeyRound, X, UserCheck, Eye, Database } from 'lucide-react';
 
 // Detect if running inside Google Apps Script iframe
@@ -120,6 +121,9 @@ export default function App() {
   // Auto Sync Engine References
   const autoSyncDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const isAutoSyncingRef = useRef(false);
+  const lastMutationTimeRef = useRef<number>(0);
+  // Dirty flag: true when local data has been mutated but not yet pushed to Sheet
+  const hasPendingMutationRef = useRef(false);
 
   // Latest refs to prevent interval recreation and stale closures
   const googleConfigRef = useRef(googleConfig);
@@ -180,6 +184,7 @@ export default function App() {
     setUsers(updated);
     saveAppUsersToLocal(updated);
     triggerAutoPush(products, warehouses, transactions, partners, updated);
+    logActivity(editId ? 'Sửa tài khoản' : 'Tạo tài khoản', 'Thành công', `${userData.email} - ${userData.role}`);
 
     // Find edited user before update to compare email
     const editedUserBefore = editId ? users.find((u) => u.id === editId) : null;
@@ -209,10 +214,12 @@ export default function App() {
   const handleDeleteUser = (userId: string) => {
     if (users.length <= 1) return;
     if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản nhân viên này không?')) {
+      const deletedUser = users.find((u) => u.id === userId);
       const updated = users.filter((u) => u.id !== userId);
       setUsers(updated);
       saveAppUsersToLocal(updated);
       triggerAutoPush(products, warehouses, transactions, partners, updated);
+      logActivity('Xóa tài khoản', 'Thành công', deletedUser?.email || userId);
     }
   };
 
@@ -273,16 +280,19 @@ export default function App() {
     setCurrentUser(updatedUserObj);
     saveCurrentUserToLocal(updatedUserObj);
 
-    // Sync role with googleConfig
+    // Sync role & email with googleConfig
     updateGoogleConfig({
       ...googleConfig,
       userRole: assignedRole,
+      userEmail: userEmail,
     });
+    logActivity('Đăng nhập', 'Thành công', userEmail);
   };
 
 
   const handleLogout = () => {
     if (window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng không?')) {
+      logActivity('Đăng xuất', 'Thành công', currentUser?.email || sessionUser?.email || '');
       localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_TOKEN);
       localStorage.removeItem(LOCAL_STORAGE_KEY_AUTH_USER);
       setIsAuthenticated(false);
@@ -414,6 +424,26 @@ export default function App() {
     triggerAutoPush(products, warehouses, transactions, newPartners);
   };
 
+  // --- Activity Log: fire-and-forget ghi nhật ký hành động nghiệp vụ ---
+  const logActivity = (logAction: string, logStatus: string, logDetail?: string) => {
+    const conf = googleConfigRef.current;
+    // Khi chạy trong GAS WebApp, gasWebappUrl rỗng nhưng callGasProxy sẽ dùng
+    // google.script.run trực tiếp → không cần URL. Chỉ bỏ qua khi KHÔNG
+    // ở trong GAS VÀ KHÔNG có URL.
+    const isGas = typeof window !== 'undefined' &&
+      (window.location?.hostname === 'script.google.com' ||
+       (typeof (window as any).google !== 'undefined' && (window as any).google?.script?.run));
+    if (!isGas && !conf.gasWebappUrl) return;
+    const payload = {
+      action: 'WRITE_LOG',
+      userEmail: conf.userEmail || currentUserRef.current?.email || 'unknown',
+      logAction,
+      logStatus,
+      logDetail: logDetail || '',
+    };
+    callGasProxy(conf.gasWebappUrl, payload).catch(() => {});
+  };
+
   // Trigger Debounced Auto-Push (1.5s) when data is mutated
   const triggerAutoPush = (
     updatedProducts = products,
@@ -423,67 +453,92 @@ export default function App() {
     updatedUsers = users,
     updatedCategories = categories
   ) => {
-    if (!googleConfig.autoSync || !googleConfig.gasWebappUrl || isAutoSyncingRef.current) {
+    // Mark local data as dirty — auto-pull MUST NOT overwrite until push succeeds
+    lastMutationTimeRef.current = Date.now();
+    hasPendingMutationRef.current = true;
+
+    if (!googleConfig.autoSync || !googleConfig.gasWebappUrl) {
       return;
     }
 
+    // Always (re)schedule the debounced push — never drop silently
     if (autoSyncDebounceRef.current) {
       clearTimeout(autoSyncDebounceRef.current);
     }
 
-    autoSyncDebounceRef.current = setTimeout(async () => {
-      if (isAutoSyncingRef.current) return;
-      isAutoSyncingRef.current = true;
-      try {
-        setSyncMessage('⚡ [Realtime] Đang tự động đẩy ngầm dữ liệu lên Google Sheets...');
-        const payload = {
-          action: 'SYNC_UP',
-          pin: googleConfig.gasPin || '123456',
-          userEmail: googleConfig.userEmail || 'admin@system.local',
-          warehouses: updatedWarehouses,
-          products: updatedProducts,
-          transactions: updatedTransactions,
-          partners: updatedPartners,
-          users: updatedUsers,
-          categories: updatedCategories,
-        };
-
-        const data = await callGasProxy(googleConfig.gasWebappUrl, payload);
-
-        if (!data || data.error) {
-          setSyncMessage(`⚠️ [Cảnh báo đồng bộ] ${data?.error || 'URL WebApp chưa đúng hoặc chưa kết nối đến Google Sheet.'}`);
-          updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+    const schedulePush = () => {
+      autoSyncDebounceRef.current = setTimeout(async () => {
+        // If another sync operation is in progress, retry after 2s instead of dropping
+        if (isAutoSyncingRef.current) {
+          console.log('[Auto-Sync] Push deferred — another sync in progress, retrying in 2s');
+          schedulePush();
           return;
         }
+        isAutoSyncingRef.current = true;
+        try {
+          setSyncMessage('⚡ [Realtime] Đang tự động đẩy ngầm dữ liệu lên Google Sheets...');
+          const payload = {
+            action: 'SYNC_UP',
+            pin: googleConfig.gasPin || '123456',
+            userEmail: googleConfig.userEmail || 'admin@system.local',
+            warehouses: updatedWarehouses,
+            products: updatedProducts,
+            transactions: updatedTransactions,
+            partners: updatedPartners,
+            users: updatedUsers,
+            categories: updatedCategories,
+          };
 
-        if (data.success) {
-          const timeStr = new Date().toLocaleTimeString('vi-VN');
-          setSyncMessage(`⚡ [Realtime] Đã tự động đẩy thành công ${updatedProducts.length} SP và ${updatedTransactions.length} phiếu lên Google Sheet lúc ${timeStr}!`);
-          updateGoogleConfig({
-            ...googleConfig,
-            lastSyncedAt: timeStr,
-            syncStatus: 'success',
-          });
-        } else {
-          setSyncMessage(`⚠️ Lỗi từ Google Sheet: ${data.error}`);
-          updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+          const data = await callGasProxy(googleConfig.gasWebappUrl, payload);
+
+          if (!data || data.error) {
+            setSyncMessage(`⚠️ [Cảnh báo đồng bộ] ${data?.error || 'URL WebApp chưa đúng hoặc chưa kết nối đến Google Sheet.'}`);
+            updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+            logActivity('Lỗi đồng bộ tự động', 'Thất bại', data?.error || 'Kết nối thất bại');
+            return;
+          }
+
+          if (data.success) {
+            const timeStr = new Date().toLocaleTimeString('vi-VN');
+            setSyncMessage(`⚡ [Realtime] Đã tự động đẩy thành công ${updatedProducts.length} SP và ${updatedTransactions.length} phiếu lên Google Sheet lúc ${timeStr}!`);
+            updateGoogleConfig({
+              ...googleConfig,
+              lastSyncedAt: timeStr,
+              syncStatus: 'success',
+            });
+            // Push succeeded — clear dirty flag so auto-pull can resume
+            hasPendingMutationRef.current = false;
+            lastMutationTimeRef.current = Date.now();
+          } else {
+            setSyncMessage(`⚠️ Lỗi từ Google Sheet: ${data.error}`);
+            updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+          }
+        } catch (e) {
+          console.warn('Background auto-push failed:', e);
+        } finally {
+          isAutoSyncingRef.current = false;
         }
-      } catch (e) {
-        console.warn('Background auto-push skipped:', e);
-      } finally {
-        isAutoSyncingRef.current = false;
-      }
-    }, 1500);
+      }, 1500);
+    };
+
+    schedulePush();
   };
 
-  // Auto-Pull Polling (every 30 seconds when autoSync is enabled)
+  // Auto-Pull Polling (every 8 seconds when autoSync is enabled)
   useEffect(() => {
     if (!googleConfig.autoSync || !googleConfig.gasWebappUrl) {
       return;
     }
 
     const interval = setInterval(async () => {
+      // NEVER pull from Sheet when local data is dirty (not yet pushed)
+      if (hasPendingMutationRef.current) return;
+      // Skip if any sync operation is in progress or if a recent mutation happened
       if (isSyncingRef.current || isAutoSyncingRef.current) return;
+      if (Date.now() - lastMutationTimeRef.current < 10000) return;
+      // Skip if a debounced push is waiting to fire
+      if (autoSyncDebounceRef.current) return;
+
       isAutoSyncingRef.current = true;
 
       try {
@@ -499,6 +554,12 @@ export default function App() {
         try {
           data = await callGasProxy(currentConf.gasWebappUrl, payload);
         } catch {
+          return;
+        }
+
+        // Double-check: if a mutation happened WHILE we were fetching, discard the stale response
+        if (hasPendingMutationRef.current) {
+          console.log('[Auto-Sync] Pull result discarded — local mutation occurred during fetch');
           return;
         }
 
@@ -626,8 +687,11 @@ export default function App() {
     if (editVoucherCode) {
       const filtered = transactions.filter((t) => t.voucherCode !== editVoucherCode);
       updated = [...newTxs, ...filtered];
+      logActivity('Sửa phiếu', 'Thành công', `${editVoucherCode} - ${newTxs.length} dòng`);
     } else {
       updated = [...newTxs, ...transactions];
+      const typeLabel = newTxs[0]?.type === 'IMPORT' ? 'Nhập' : 'Xuất';
+      logActivity(`Tạo phiếu ${typeLabel}`, 'Thành công', `${newTxs[0]?.voucherCode || ''} - ${newTxs.length} dòng`);
     }
     updateTransactions(updated);
     setEditingVoucherCode(null);
@@ -635,14 +699,17 @@ export default function App() {
 
   const handleDeleteTransaction = (id: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu nhập/xuất này không?')) {
+      const deleted = transactions.find((t) => t.id === id);
       const updated = transactions.filter((t) => t.id !== id);
       updateTransactions(updated);
+      logActivity('Xóa dòng phiếu', 'Thành công', deleted?.voucherCode || id);
     }
   };
 
   const handleDeleteVoucher = (voucherCode: string) => {
     const updated = transactions.filter((t) => t.voucherCode !== voucherCode);
     updateTransactions(updated);
+    logActivity('Xóa phiếu', 'Thành công', voucherCode);
   };
 
   const handleImportExcelTransactions = (records: Partial<Transaction>[]) => {
@@ -677,19 +744,23 @@ export default function App() {
         p.id === editingProduct.id ? { ...prodData, id: p.id } : p
       );
       updateProducts(updated);
+      logActivity('Sửa sản phẩm', 'Thành công', `${prodData.code} - ${prodData.name}`);
     } else {
       const newProd: Product = {
         ...prodData,
         id: `prod-${Date.now()}`,
       };
       updateProducts([...products, newProd]);
+      logActivity('Tạo sản phẩm', 'Thành công', `${prodData.code} - ${prodData.name}`);
     }
     setEditingProduct(null);
   };
 
   const handleDeleteProduct = (productId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa mặt hàng này khỏi danh mục?')) {
+      const deleted = products.find((p) => p.id === productId);
       updateProducts(products.filter((p) => p.id !== productId));
+      logActivity('Xóa sản phẩm', 'Thành công', deleted ? `${deleted.code} - ${deleted.name}` : productId);
     }
   };
 
@@ -700,6 +771,7 @@ export default function App() {
         w.id === editingWarehouse.id ? { ...whData, id: w.id } : w
       );
       updateWarehouses(updated);
+      logActivity('Sửa kho hàng', 'Thành công', `${whData.code} - ${whData.name}`);
     } else {
       const newWh: Warehouse = {
         ...whData,
@@ -711,13 +783,16 @@ export default function App() {
         currentWhs = warehouses.map((w) => ({ ...w, isDefault: false }));
       }
       updateWarehouses([...currentWhs, newWh]);
+      logActivity('Tạo kho hàng', 'Thành công', `${whData.code} - ${whData.name}`);
     }
     setEditingWarehouse(null);
   };
 
   const handleDeleteWarehouse = (warehouseId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa kho hàng này không?')) {
+      const deleted = warehouses.find((w) => w.id === warehouseId);
       updateWarehouses(warehouses.filter((w) => w.id !== warehouseId));
+      logActivity('Xóa kho hàng', 'Thành công', deleted ? `${deleted.code} - ${deleted.name}` : warehouseId);
     }
   };
 
@@ -763,6 +838,7 @@ export default function App() {
       } else {
         setSyncMessage(`Lỗi đồng bộ GAS: ${data.error}`);
         updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+        logActivity('Lỗi đồng bộ thủ công (Push)', 'Thất bại', data.error);
       }
     } catch (err: any) {
       let msg = err.message || '';
@@ -771,6 +847,7 @@ export default function App() {
       }
       setSyncMessage(`Lỗi kết nối: ${msg}`);
       updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+      logActivity('Lỗi kết nối đồng bộ (Push)', 'Thất bại', msg);
     } finally {
       setIsSyncing(false);
     }
@@ -823,6 +900,7 @@ export default function App() {
       } else {
         setSyncMessage(`Lỗi tải dữ liệu GAS: ${data.error}`);
         updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+        logActivity('Lỗi đồng bộ thủ công (Pull)', 'Thất bại', data.error);
       }
     } catch (err: any) {
       let msg = err.message || '';
@@ -831,6 +909,7 @@ export default function App() {
       }
       setSyncMessage(`Lỗi kết nối: ${msg}`);
       updateGoogleConfig({ ...googleConfig, syncStatus: 'error' });
+      logActivity('Lỗi kết nối đồng bộ (Pull)', 'Thất bại', msg);
     } finally {
       setIsSyncing(false);
     }
@@ -848,6 +927,7 @@ export default function App() {
       setPartners([]);
       savePartnersToLocal([]);
       triggerAutoPush([], [], [], []);
+      logActivity('Xóa sạch dữ liệu', 'Thành công', 'Xóa toàn bộ SP, Kho, Phiếu, Đối tác');
       alert('Đã xóa sạch dữ liệu trên máy và tự động đồng bộ xóa trắng Google Sheet!');
     }
   };
@@ -1112,13 +1192,17 @@ export default function App() {
                   id: `part-${Date.now()}`,
                 };
                 updatePartners([...partners, newPartner]);
+                logActivity('Tạo đối tác', 'Thành công', `${p.code} - ${p.name}`);
               }}
               onUpdatePartner={(updatedP) => {
                 const updated = partners.map((p) => (p.id === updatedP.id ? updatedP : p));
                 updatePartners(updated);
+                logActivity('Sửa đối tác', 'Thành công', `${updatedP.code} - ${updatedP.name}`);
               }}
               onDeletePartner={(id) => {
+                const deleted = partners.find((p) => p.id === id);
                 updatePartners(partners.filter((p) => p.id !== id));
+                logActivity('Xóa đối tác', 'Thành công', deleted ? `${deleted.code} - ${deleted.name}` : id);
               }}
             />
           )}

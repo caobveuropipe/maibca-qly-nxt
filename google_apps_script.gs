@@ -15,7 +15,7 @@
 const DEFAULT_AUTH_PIN = "A12b34D56";
 
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  return HtmlService.createHtmlOutputFromFile('index')
       .setTitle('Quản Lý Nhập Xuất Tồn Kho (IMS PRO)')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -27,33 +27,46 @@ function doPost(e) {
     if (e && e.postData && e.postData.contents) {
       data = JSON.parse(e.postData.contents);
     }
-    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var result = dispatchAction(data, ss);
+    return responseJSON(result);
+  } catch (err) {
+    return responseJSON({ success: false, error: err.toString() });
+  }
+}
+
+function dispatchAction(data, ss) {
+  try {
     var action = data.action;
     var pin = data.pin || "";
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
 
     // 1. Kiểm tra PIN bảo mật (nếu người dùng có cài đặt PIN)
     if (data.requirePinCheck && pin !== DEFAULT_AUTH_PIN) {
-      return responseJSON({ success: false, error: "Mã PIN xác thực không chính xác!" });
+      return { success: false, error: "Mã PIN xác thực không chính xác!" };
+
     }
 
     if (action === "GET_ACTIVE_USER") {
       var activeEmail = (Session.getActiveUser().getEmail() || "").trim().toLowerCase();
       if (!activeEmail) {
-        return responseJSON({ success: false, requireLogin: true, error: "Không thể tự động đọc Email từ Google Session." });
+        return { success: false, requireLogin: true, error: "Không thể tự động đọc Email từ Google Session." };
+
       }
-      return responseJSON({ success: true, email: activeEmail });
+      return { success: true, email: activeEmail };
+
     }
 
     if (action === "PING") {
-      return responseJSON({ success: true, message: "Kết nối Google Sheet thành công!" });
+      return { success: true, message: "Kết nối Google Sheet thành công!" };
+
     }
 
     // Action: SEND_OTP (Gửi mã OTP 6 số qua Email miễn phí 100%)
     if (action === "SEND_OTP") {
       var targetEmail = (data.email || "").trim().toLowerCase();
       if (!targetEmail || !targetEmail.includes("@")) {
-        return responseJSON({ success: false, error: "Vui lòng nhập địa chỉ Email hợp lệ!" });
+        return { success: false, error: "Vui lòng nhập địa chỉ Email hợp lệ!" };
+
       }
 
       // Tạo mã OTP 6 số ngẫu nhiên
@@ -69,10 +82,12 @@ function doPost(e) {
         var body = "Xin chào,\n\nMã OTP xác thực đăng nhập hệ thống Quản Lý Nhập Xuất Tồn của bạn là: " + otpCode + "\n\nMã này có hiệu lực trong 10 phút. Vui lòng không chia sẻ mã này cho ai.\n\nTrân trọng,\nHệ thống IMS PRO";
         MailApp.sendEmail(targetEmail, subject, body);
       } catch (mailErr) {
-        return responseJSON({ success: false, error: "Lỗi gửi mail Google: " + mailErr.message });
+        return { success: false, error: "Lỗi gửi mail Google: " + mailErr.message };
+
       }
 
-      return responseJSON({ success: true, message: "Đã gửi mã OTP 6 số đến email " + targetEmail + ". Vui lòng kiểm tra hộp thư!" });
+      return { success: true, message: "Đã gửi mã OTP 6 số đến email " + targetEmail + ". Vui lòng kiểm tra hộp thư!" };
+
     }
 
     // Action: VERIFY_OTP (Xác minh OTP & cấp Token dài hạn)
@@ -84,7 +99,8 @@ function doPost(e) {
       var cachedOtp = cache.get("OTP_" + targetEmail);
 
       if (!cachedOtp || cachedOtp !== inputOtp) {
-        return responseJSON({ success: false, error: "Mã OTP không chính xác hoặc đã hết hạn. Vui lòng thử lại!" });
+        return { success: false, error: "Mã OTP không chính xác hoặc đã hết hạn. Vui lòng thử lại!" };
+
       }
 
       cache.remove("OTP_" + targetEmail);
@@ -104,7 +120,8 @@ function doPost(e) {
             userRole = (userValues[i][3] || "").toString().trim().toUpperCase();
             var status = (userValues[i][4] || "ACTIVE").toString().trim().toUpperCase();
             if (status === "LOCKED") {
-              return responseJSON({ success: false, error: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!" });
+              return { success: false, error: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!" };
+
             }
             break;
           }
@@ -113,13 +130,14 @@ function doPost(e) {
 
       // Nếu email không tồn tại trong Bảng Phân Quyền sheet PHAN_QUYEN -> Từ chối đăng nhập
       if (!userRole) {
-        return responseJSON({
+        return {
           success: false,
           error: "Email (" + targetEmail + ") chưa được cấp quyền truy cập hệ thống. Vui lòng liên hệ Admin!"
-        });
+        };
+
       }
 
-      return responseJSON({
+      return {
         success: true,
         message: "Xác minh OTP thành công!",
         user: {
@@ -128,7 +146,8 @@ function doPost(e) {
           role: userRole,
           token: "sess_" + new Date().getTime() + "_" + Math.random().toString(36).substring(2, 9)
         }
-      });
+      };
+
     }
 
 
@@ -253,13 +272,11 @@ function doPost(e) {
       });
       updateSheetData(ss, "DANH_MUC_NHOM_HANG", catRows);
 
-      // Ghi Nhật Ký
-      writeLog(ss, userEmail, "Đồng bộ lên (Sync Up)", "Thành công - " + products.length + " SP, " + transactions.length + " phiếu, " + partners.length + " đối tác, " + users.length + " tài khoản, " + categories.length + " nhóm hàng");
-
-      return responseJSON({
+      return {
         success: true,
         message: "Đã đồng bộ " + products.length + " sản phẩm, " + transactions.length + " phiếu, " + partners.length + " đối tác, " + users.length + " tài khoản và " + categories.length + " nhóm hàng lên Google Sheet!"
-      });
+      };
+
     }
 
 
@@ -427,9 +444,7 @@ function doPost(e) {
         }
       }
 
-      writeLog(ss, "system", "Đồng bộ xuống (Sync Down)", "Thành công - " + productsList.length + " SP, " + transactionsList.length + " phiếu, " + partnersList.length + " đối tác, " + usersList.length + " tài khoản, " + categoriesList.length + " nhóm hàng");
-
-      return responseJSON({
+      return {
         success: true,
         data: {
           warehouses: warehousesList,
@@ -439,15 +454,25 @@ function doPost(e) {
           users: usersList,
           categories: categoriesList
         }
-      });
-
+      };
 
     }
 
-    return responseJSON({ success: false, error: "Hành động không hợp lệ: " + action });
+    // Action: WRITE_LOG (Ghi nhật ký hoạt động nghiệp vụ từ frontend)
+    if (action === "WRITE_LOG") {
+      var logEmail = data.userEmail || "unknown";
+      var logAction = data.logAction || "Hành động không rõ";
+      var logStatus = data.logStatus || "Thành công";
+      var logDetail = data.logDetail || "";
+      writeLog(ss, logEmail, logAction, logStatus, logDetail);
+      return { success: true };
+    }
+
+    return { success: false, error: "Hành động không hợp lệ: " + action };
 
   } catch (err) {
-    return responseJSON({ success: false, error: err.toString() });
+    return { success: false, error: err.toString() };
+
   }
 }
 
@@ -486,8 +511,8 @@ function ensureSheetsExist(ss) {
   // 4. Tạo sheet NHAT_KY_HOAT_DONG
   if (!ss.getSheetByName("NHAT_KY_HOAT_DONG")) {
     var sh = ss.insertSheet("NHAT_KY_HOAT_DONG");
-    sh.appendRow(["Thời Gian", "Email / Người Dùng", "Thao Tác", "Trạng Thái"]);
-    formatHeader(sh, 4);
+    sh.appendRow(["Thời Gian", "Email / Người Dùng", "Thao Tác", "Trạng Thái", "Chi Tiết"]);
+    formatHeader(sh, 5);
   }
 
   // 5. Tạo sheet PHAN_QUYEN (Mới bổ sung)
@@ -533,16 +558,16 @@ function updateSheetData(ss, sheetName, values) {
   }
 }
 
-function writeLog(ss, email, action, status) {
+function writeLog(ss, email, action, status, detail) {
   try {
     var sheet = ss.getSheetByName("NHAT_KY_HOAT_DONG");
     if (!sheet) sheet = ss.insertSheet("NHAT_KY_HOAT_DONG");
     
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["Thời Gian", "Email / Người Dùng", "Thao Tác", "Trạng Thái"]);
-      formatHeader(sheet, 4);
+      sheet.appendRow(["Thời Gian", "Email / Người Dùng", "Thao Tác", "Trạng Thái", "Chi Tiết"]);
+      formatHeader(sheet, 5);
     }
-    sheet.appendRow([new Date().toLocaleString("vi-VN"), email, action, status]);
+    sheet.appendRow([new Date().toLocaleString("vi-VN"), email, action, status, detail || ""]);
   } catch (e) {}
 }
 
@@ -582,18 +607,10 @@ function testSendMail() {
 // --------------------------------------------------------
 function executeGasAction(payloadStr) {
   try {
-    var payload = JSON.parse(payloadStr);
-    
-    // Tạo cấu trúc sự kiện giả lập tương tự doPost
-    var mockEvent = {
-      postData: {
-        contents: payloadStr
-      }
-    };
-    
-    // Gọi trực tiếp doPost
-    var textOutput = doPost(mockEvent);
-    return textOutput.getContent();
+    var data = JSON.parse(payloadStr);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var result = dispatchAction(data, ss);
+    return JSON.stringify(result);
   } catch (e) {
     return JSON.stringify({ success: false, error: e.toString() });
   }

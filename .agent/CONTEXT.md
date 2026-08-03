@@ -26,12 +26,6 @@
 | [KNOWLEDGE_BASE.md](./KNOWLEDGE_BASE.md) | Quyết định kiến trúc và lý do chiến lược |
 | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | Snapshot cấu trúc thư mục, entry points, services và commands |
 
-### Architecture & Active Features
-| File | Mô tả |
-|------|------|
-| [active/pure-gas-integration/FEATURE_PLAN.md](./active/pure-gas-integration/FEATURE_PLAN.md) | Plan chuyển đổi sang kiến trúc Thuần GAS |
-| [active/pure-gas-integration/FEATURE_TASKS.md](./active/pure-gas-integration/FEATURE_TASKS.md) | Tasks chi tiết cho kế hoạch Thuần GAS |
-
 ### Changelog
 | File | Mô tả |
 |------|------|
@@ -76,4 +70,4 @@ npm run lint
 
 ---
 
-*Last updated: 2026-07-28 | IMS PRO V2.4*
+*Last updated: 2026-08-03 | IMS PRO V2.4*

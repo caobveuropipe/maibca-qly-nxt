@@ -1,7 +1,7 @@
 # Project Structure - Quản Lý Nhập Xuất Tồn Kho (IMS PRO)
 
 > Tạo ngày: 2026-07-28  
-> Cập nhật gần nhất: 2026-07-28  
+> Cập nhật gần nhất: 2026-08-03  
 > Mục đích: Lưu snapshot cấu trúc codebase để AI Assistants có thể onboard và resume nhanh.
 
 ---
@@ -11,7 +11,6 @@
 ```text
 QuanLyNXT/
 ├── .agent/                             # Hệ thống tài liệu điều phối AI & Skill pack
-│   ├── active/pure-gas-integration/    # Kế hoạch chuyển đổi Thuần GAS
 │   ├── skills/                         # Các kỹ năng chuẩn hóa (check-issue, feature-plan, ...)
 │   ├── CONTEXT.md                      # Bản đồ dự án
 │   ├── KNOWLEDGE_BASE.md               # Lưu trữ quyết định kiến trúc

@@ -6,6 +6,14 @@
 
 ---
 
+## 2026-08-02
+
+### feat: Thêm entry point `executeGasAction` làm cầu nối gọi qua `google.script.run`
+- Trực tiếp đón các request đồng bộ từ Frontend khi mở bằng GAS WebApp URL.
+- Tái cấu trúc (extract) thân hàm `doPost()` thành hàm trung gian `dispatchAction(data, ss)` để dùng chung cho cả HTTP POST và `google.script.run`.
+- Bọc try/catch toàn bộ để xử lý lỗi và trả chuỗi JSON thuần trực tiếp về phía client (tránh lỗi serialization của `ContentService`).
+- Files: `google_apps_script.gs`
+
 ## 2026-07-28
 
 ### feat: Tối ưu hóa hạ tầng Vercel Static Build (Thuần GAS)

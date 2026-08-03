@@ -25,3 +25,9 @@ Lưu trữ những **quyết định kiến trúc** quan trọng và **lý do ch
 ## Ongoing Decisions
 
 - [2026-07-28] Đã khởi tạo bộ tài liệu `.agent/` hỗ trợ AI Assistants điều phối công việc chuẩn hóa theo quy chuẩn dự án.
+
+- [2026-08-02] **Quyết định sử dụng Entry Point `executeGasAction` để cầu nối `google.script.run`.**  
+  *Why:* Khi chạy trực tiếp ứng dụng React trong container của Google Apps Script (GAS WebApp URL), các cuộc gọi đến backend không đi qua HTTP POST thông thường mà gọi qua `google.script.run`. Việc thêm một hàm entrypoint `executeGasAction` chuyển tiếp (dispatch) payload động giúp đồng bộ mượt mà và cho phép `Session.getActiveUser()` lấy email thực tế của người dùng.
+
+- [2026-08-01] **Quyết định triển khai cơ chế OTP dự phòng `123456` khi lỗi mạng / chưa cấu hình WebApp.**  
+  *Why:* Tránh việc luồng đăng nhập bị chặn cứng (block) hoàn toàn khi người dùng chưa cấu hình đúng Google Sheet hoặc gặp sự cố CORS/mất mạng. Cho phép đăng nhập fallback nhanh để người dùng vào được màn hình cấu hình WebApp URL.
